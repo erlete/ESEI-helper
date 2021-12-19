@@ -10,6 +10,17 @@ function textify(event) {
 	return `Name: ${event.name}\nDescription: ${event.description}\nCourse name: ${event.course_name}\nCourse category: ${event.course_category}\nDate: ${event.date}\nURL: ${event.url}`
 }
 
+function format_difference(date1, date2) {
+	let diff = Math.abs(date1 - date2); // returns the ms difference.
+
+	days = diff / 86400000
+	hours = days % 1 * 24;
+	minutes = hours % 1 * 60;
+	seconds = minutes % 1 * 60;
+
+	return {days: Math.floor(days), hours: Math.floor(hours), minutes: Math.floor(minutes), seconds: Math.floor(seconds)}
+}
+
 // 1. Content retrieval:
 async function get_data(year=CURRENT_YEAR, month=CURRENT_MONTH) {
 	return (await axios.post(
