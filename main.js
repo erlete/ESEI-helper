@@ -52,6 +52,8 @@ get_weeks().then(function(response) {
 	}})
 
 	// Tests:
-	console.log(textify(events[0]) + '\n'); // displays an event.
-	console.log(format_difference(new Date(Date.now()), events[0].date)); // displays the remaning time.
+	for (i = 0; i < events.length; i++) {
+		console.log(textify(events[i])); // displays an event.
+		console.log(format_difference(new Date(Date.now()), events[0].date) + '\n'); // displays the remaning time.
+	}
 })
