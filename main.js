@@ -3,7 +3,7 @@ const axios = require("axios");
 // Constants:
 const COOKIE = "e535f2184f715ef1b7b37fcf602c6c23";
 const CURRENT_YEAR = new Date(Date.now()).getFullYear();
-const CURRENT_MONTH = new Date(Date.now()).getMonth();
+const CURRENT_MONTH = new Date(Date.now()).getMonth() + 1;
 
 // Helper functions:
 function textify(event) {
