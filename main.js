@@ -29,7 +29,7 @@ async function get_weeks(year=CURRENT_YEAR, month=CURRENT_MONTH) {
 		{headers: {Cookie: `MoodleSession=${COOKIE}`}}
 	)).data[0].data.weeks;
 
-	let nextonth = (await axios.post(
+	let nextMonth = (await axios.post(
 		"https://moovi.uvigo.gal/lib/ajax/service.php?sesskey=wQ2GngY4A6&info=core_calendar_get_calendar_monthly_view",
 		[{"index":0,"methodname":"core_calendar_get_calendar_monthly_view","args":{"year":month == 12 ? year + 1 : year,"month": month == 12 ? 1 : month + 1,"courseid":1,"categoryid":0,"includenavigation":false,"mini":true,"day":1}}],
 		{headers: {Cookie: `MoodleSession=${COOKIE}`}}
