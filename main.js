@@ -22,18 +22,25 @@ function format_difference(date1, date2) {
 }
 
 // 1. Content retrieval:
-async function get_data(year=CURRENT_YEAR, month=CURRENT_MONTH) {
-	return (await axios.post(
+async function get_weeks(year=CURRENT_YEAR, month=CURRENT_MONTH) {
+	let currentMonth = (await axios.post(
 		"https://moovi.uvigo.gal/lib/ajax/service.php?sesskey=wQ2GngY4A6&info=core_calendar_get_calendar_monthly_view",
 		[{"index":0,"methodname":"core_calendar_get_calendar_monthly_view","args":{"year":year,"month":month,"courseid":1,"categoryid":0,"includenavigation":false,"mini":true,"day":1}}],
 		{headers: {Cookie: `MoodleSession=${COOKIE}`}}
-	)).data[0]
+	)).data[0].data.weeks;
+
+	let nextonth = (await axios.post(
+		"https://moovi.uvigo.gal/lib/ajax/service.php?sesskey=wQ2GngY4A6&info=core_calendar_get_calendar_monthly_view",
+		[{"index":0,"methodname":"core_calendar_get_calendar_monthly_view","args":{"year":month == 12 ? year + 1 : year,"month": month == 12 ? 1 : month + 1,"courseid":1,"categoryid":0,"includenavigation":false,"mini":true,"day":1}}],
+		{headers: {Cookie: `MoodleSession=${COOKIE}`}}
+	)).data[0].data.weeks;
+
+	return currentMonth.concat(nextMonth);
 }
 
 // 2. Content handling:
-get_data(year=2022, month=1).then(function(response) {
-	let weeks = response.data.weeks.map(function (week) {return week.days});
-	let days = weeks.flat()
+get_weeks().then(function(response) {
+	let days = response.map(function (week) {return week.days}).flat();
 	let daytitles = days.map(function (day) {return day.daytitle});
 	let events = days.map(function (day) {return day.events}).flat().map(function (event) {return {
 		name: event.name,
