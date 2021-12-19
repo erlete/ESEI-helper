@@ -19,18 +19,16 @@ const CURRENT_MONTH = new Date(Date.now()).getMonth() + 1;
  * en la funcion que definiste tu para que se lean en ejecución y le cambie el nombre.
  */
 
-let ws_token; //Definimos el token como variable global
 
 // Helper functions:
 
+/**Function to return a formatted string with event data*/
 function eventStringify(event) {
-	/**Function to return a formatted string with event data*/
 
 	return `Name: ${event.name.toUpperCase()}\nDescription: ${event.description}\nCourse name: ${event.course_name}\nCourse category: ${event.course_category}\nDate: ${event.date}\nURL: ${event.url}`
 }
-
+/**Function to return an object with the time difference between two EPOCH dates*/
 function format_difference(date1, date2) {
-	/**Function to return an object with the time difference between two EPOCH dates*/
 
 	let diff = Math.abs(date1 - date2); // Returns the ms difference.
 	days = diff / 86400000
@@ -50,15 +48,16 @@ function format_difference(date1, date2) {
 
 // WebService Authentication
 
+/**Function to initialize the token with .env default credentials
+ * Allows to define the ws_token variable without passing env variables each time*/
 async function initToken() {
-	/**Function to initialize the token with .env default credentials
-	 * Allows to define the ws_token variable without passing env variables each time*/
 
 	ws_token = await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD)
 	return true;
 }
+
+/**Function that gets a Moodle webService token from an username and password*/
 async function getWsToken(username, password) {
-	/**Function that gets a Moodle webService token from an username and password*/
 
 	return (await axios.post('https://moovi.uvigo.gal/login/token.php', {}, {
 		params: {
@@ -74,16 +73,16 @@ async function getWsToken(username, password) {
 
 // 1. Content retrieval:
 
+/**CAUTION THIS A GENERAL MOODLE WEBSERVICE REQUEST, READ :
+ * Standard webService request to allow cleaner code, takes two parameters:
+ * ws_function: String 	(Moodle name of the content requested)
+ * req_params: Object	(Object containing all further data needed sent to the server)
+ * Example:
+ * ws_function = 'core_calendar_get_calendar_monthly_view' //Monthly calendar function name
+ * req_params = {	year : 2021	, month : 12	} //Data needed to obtain the calendar info*/
 async function wsRequest(ws_function, req_params) {
-	/**CAUTION THIS A GENERAL MOODLE WEBSERVICE REQUEST, READ :
-	 * Standard webService request to allow cleaner code, takes two parameters:
-	 * ws_function: String 	(Moodle name of the content requested)
-	 * req_params: Object	(Object containing all further data needed sent to the server)
-	 * Example:
-	 * ws_function = 'core_calendar_get_calendar_monthly_view' //Monthly calendar function name
-	 * req_params = {	year : 2021	, month : 12	} //Data needed to obtain the calendar info
-	 */
-	if (!ws_token) {
+
+	if (typeof ws_token === 'undefined') {
 		await initToken()
 	}
 	return (await axios.post('https://moovi.uvigo.gal/webservice/rest/server.php', new url.URLSearchParams({
@@ -97,11 +96,10 @@ async function wsRequest(ws_function, req_params) {
 	})).data
 }
 
-
+/**Function that requests monthly calendar twice.
+ * First one with current month and second one with next month*/
 async function getCalendarData(year = new Date(Date.now()).getFullYear(), month = new Date(Date.now()).getMonth() + 1) {
-	/**Function that requests monthly calendar twice.
-	 * First one with current month and second one with next month
-	 */
+
 	let crnt_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
 		year: year,
 		month: month,
@@ -113,38 +111,36 @@ async function getCalendarData(year = new Date(Date.now()).getFullYear(), month 
 	return crnt_month.concat(nxt_month);
 }
 
-// 2. Content handling:
-getCalendarData().then(function (response) {
-	let days = response.map(function (week) {
+
+
+async function getEvents(calendar_data) {
+	return calendar_data.map(function (week) {
 		return week.days
-	}).flat();
-	let daytitles = days.map(function (day) {
-		return day.daytitle
-	});
-	let events = days.map(function (day) {
+	}).flat().map(function (day) {
 		return day.events
 	}).flat().map(function (event) {
 		return {
 			name: event.name,
-			description: event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {
+			description: (event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {
 				return content.length > 0 ? content : null
 			}).map(function (content) {
-				return content.trim()
-			}).join(' '),
+				console.log(content)
+				return content.replace(/[\r\n]+/g, " ").trim()
+			})).join(' ').replace(/(\s\.)+/g, "."),
 			course_name: "course" in event ? event.course.fullnamedisplay : "Undefined course.",
 			course_category: "course" in event ? event.course.coursecategory : "Undefined course.",
 			date: new Date(event.timestart * 1000),
-			url: event.url
+			url: event.url,
 		}
 	})
 
-	// Tests:
-	events.map(function (event, index) {
-
-		console.log(eventStringify(event)); // displays an event.
-		console.log(JSON.stringify(format_difference(new Date(Date.now()), event.date)) + '\n'); // displays the remaning time.
-
-
-	})
-
-})
+}
+module.exports = { //Exportamos las funciones para tener el codigo del cliente mas limpio
+	eventStringify,
+	format_difference,
+	getWsToken,
+	initToken,
+	wsRequest,
+	getCalendarData,
+	getEvents
+}
