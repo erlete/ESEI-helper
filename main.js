@@ -31,17 +31,20 @@ async function get_data(year=CURRENT_YEAR, month=CURRENT_MONTH) {
 }
 
 // 2. Content handling:
-get_data().then(function(response) {
+get_data(year=2022, month=1).then(function(response) {
 	let weeks = response.data.weeks.map(function (week) {return week.days});
 	let days = weeks.flat()
 	let daytitles = days.map(function (day) {return day.daytitle});
 	let events = days.map(function (day) {return day.events}).flat().map(function (event) {return {
 		name: event.name,
 		description: event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {return content.length > 0 ? content : null}).map(function (content) {return content.trim()}).join(' '),
-		course_name: event.course.fullnamedisplay,
-		course_category: event.course.coursecategory,
+		course_name: "course" in event ? event.course.fullnamedisplay : "Undefined course.",
+		course_category: "course" in event ? event.course.coursecategory : "Undefined course.",
 		date: new Date(event.timestart * 1000),
 		url: event.url
 	}})
-	console.log(textify(events[0]));
+
+	// Tests:
+	console.log(textify(events[0]) + '\n'); // displays an event.
+	console.log(format_difference(new Date(Date.now()), events[0].date)); // displays the remaning time.
 })
