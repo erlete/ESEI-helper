@@ -14,19 +14,15 @@ let DATABASE = './events.json';
 /**Function that returns a formatted string with event data.*/
 function eventStringify(event) { // TODO: add remaining time parameter.
 
-	let output = '';
-
-	if (event.course_category != '') {
-		output += `\`\`\`Curso:\`\`\` ${event.course_category}\n\n` +
-			`\`\`\`Módulo:\`\`\` ${event.course_name}\n\n`;
-	}
-
-	output += `\`\`\`Título:\`\`\` *${event.name.toUpperCase()}*\n\n` +
-		`\`\`\`Descripción:\`\`\` ${event.description}\n\n` +
-		`\`\`\`Fecha de entrega:\`\`\` ${event.date.toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
-		`\`\`\`URL:\`\`\` ${event.url}`;
-
-	return output;
+	return ('' + // FIXME: Maybe use a filter method to simplify this expression?
+		`${event.course_category == '' ? '': '\`\`\`Curso:\`\`\`' + event.course_category + '\n\n'}` +
+		`${event.course_category == '' ? '': '\`\`\`Módulo:\`\`\`' + event.course_name + '\n\n'}` +
+		`\`\`\`Evento:\`\`\` *${event.name.toUpperCase()}*\n\n` +
+		`\`\`\`Fecha límite:\`\`\` ${event.date.toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
+		`${event.location == '' ? '' : '\`\`\`Localización:\`\`\`' + event.location + '\n\n'}` +
+		`${event.description == '' ? '' : '\`\`\`Descripción:\`\`\`' + event.description + '\n\n'}` +
+		`\`\`\`URL:\`\`\` ${event.url}`
+	);
 }
 
 /**Function that returns an object containing the time difference between two EPOCH dates.*/
@@ -67,7 +63,6 @@ async function getWsToken(username, password) {
 			service: 'moodle_mobile_app'
 		}
 	})).data.token;
-
 }
 
 
