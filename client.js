@@ -58,6 +58,9 @@ async function init() {
 	// Bot commands:
 
 	client.on('message_create', message => {
+		console.log(message.from);
+		console.log(SUPERUSERS[1])
+		console.log(SUPERUSERS.includes(message.from))
 		if (message.type == 'list_response') {
 			logger(message, 'List response detected.');
 			listReplyHandler(message);
@@ -72,7 +75,7 @@ async function init() {
 					break;
 				case 'geteventlist':
 					logger(message, 'Event list requested.');
-					sendEventList(message);
+					client.sendMessage(message.from, getEventList(message));
 					break;
 				default:
 					logger(message, 'No matches for the requested message.');
@@ -87,7 +90,7 @@ async function init() {
 }
 
 /**Function that sends a formatted event list to the message sender's chat.*/
-async function sendEventList(message) {
+async function getEventList(message) {
 	let events = require(moovi.DATABASE_FILE);
 	let identifiers = Object.keys(events);
 
@@ -101,8 +104,7 @@ async function sendEventList(message) {
 			description: events[identifier].description != '' ? events[identifier].description.length <= 39 ? events[identifier].description : events[identifier].description.slice(0, 39) + '...' : 'No existe descripción para este evento.'
 		});
 	});
-
-	client.sendMessage(message.to, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', ''));
+	return new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', '');
 }
 
 /**Function that serves as handler for list-specific replies.*/
@@ -114,13 +116,13 @@ async function listReplyHandler(message) {
 		`Evento: ${event.name.toUpperCase()}`,
 		`\nVisita ${event.url} para más información acerca del evento.`
 	);
-	client.sendMessage(message.to, button);
+	client.sendMessage(message.from, button);
 }
 
 /**Function that serves as handler for button-specific replies.*/
 async function buttonReplyHandler(message) {
 	let difference = moovi.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)));
-	client.sendMessage(message.to, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
+	client.sendMessage(message.from, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
 }
 
 
