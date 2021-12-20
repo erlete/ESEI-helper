@@ -91,23 +91,16 @@ async function init() {
     client.initialize();
 }
 
-async function newEvents(chatId) {
-    let events = require("./events.json");
-    Object.keys(events).map(function (event) {client.sendMessage(chatId, moovi.eventStringify(events[event]))})
-}
-
-/**Function that sends each formatted event to the specified chat.*/
-async function sendEvents(chatId) {
-    (await moovi.getEvents(await moovi.getCalendarData())).map(function (event, index) {
-        client.sendMessage(chatId, moovi.eventStringify(event)) // TODO: split events.
-    })
+async function cachedEvents(message) {
+    let events = require(moovi.DATABASE_FILE);
+    Object.keys(events).map(function (event) {client.sendMessage(message.to, moovi.eventStringify(events[event]))});
 }
 
 /**Function that sends each formatted event to the specified chat but only for upcoming events.*/
-async function sendUpcomingEvents(chatId) {
-    (await moovi.getUpcomingEvents(await moovi.getCalendarData())).map(function (event, index) {
-        client.sendMessage(chatId, moovi.eventStringify(event)) // TODO: split events.
-    })
+async function sendEvents(message) { // DEPRECATED
+    (await moovi.getEvents(await moovi.getCalendarData())).map(function (event) {
+        client.sendMessage(message.to, moovi.eventStringify(event));
+    });
 }
 
 /**Function that sends a formatted event list to the specified chat.*/
