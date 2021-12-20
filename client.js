@@ -3,7 +3,7 @@
 const moovi = require('./mooviFunctions');
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
-const { Client, List } = require('whatsapp-web.js');
+const { Client, List, Buttons } = require('whatsapp-web.js');
 
 require('dotenv').config();
 const SUPERUSERS = process.env.SUPERUSERS.split(',');
@@ -62,6 +62,9 @@ async function init() {
         if (message.type == 'list_response') {
             logger(message, 'List response detected.');
             listReplyHandler(message);
+        } else if (message.type == 'buttons_response') {
+            logger(message, 'Button response detected.');
+            buttonReplyHandler(message);
         } else if (SUPERUSERS.includes(message.from)) {
             switch (message.body) {
                 case 'getid':
@@ -121,12 +124,25 @@ async function sendEventList(message) {
         });
     });
 
-    client.sendMessage(message.to, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', ''))
+    client.sendMessage(message.to, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', ''));
 }
 
 /**Function that serves as handler for list-specific replies.*/
 async function listReplyHandler(message) {
-    message.reply(moovi.eventStringify(require(moovi.DATABASE_FILE)[message.selectedRowId]));
+    let event = require(moovi.DATABASE_FILE)[message.selectedRowId];
+    let button = new Buttons(
+        moovi.eventStringify(event),
+        [{id: `${event.date}`, body:'Tiempo restante'}],
+        '',
+        ''
+    );
+    message.reply(button);
+}
+
+async function buttonReplyHandler(message) {
+    let difference = moovi.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)));
+    message.reply(`Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
+    client.sendMessage(message.from, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
 }
 
 
