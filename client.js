@@ -52,7 +52,7 @@ async function init() {
 
 	client.on('ready', () => {
 		logger('Client is ready');
-	}
+	})
 
 
 	// Bot commands:
