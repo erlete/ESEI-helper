@@ -3,6 +3,19 @@
 const moovi = require('./mooviFunctions')
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
+const { Client, List } = require('whatsapp-web.js');
+
+let client; // FIXME: should this be here?
+
+
+// Helper functions:
+
+/**Function that adds a timestamp to the logged message (debugging purposes).*/
+function logger(content) {
+    let now = new Date(Date.now());
+    console.log(`[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}] ->`);
+    console.log(content);
+}
 
 
 // Bot's functions:
