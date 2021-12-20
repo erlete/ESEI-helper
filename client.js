@@ -5,6 +5,9 @@ const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 const { Client, List } = require('whatsapp-web.js');
 
+require('dotenv').config();
+const SUPERUSERS = process.env.SUPERUSERS.split(',');
+
 const SESSION_FILE_PATH = './session.json';
 let client, sessionData;
 
@@ -59,7 +62,7 @@ async function init() {
         if (message.type == 'list_response') {
             logger(message, 'List response detected.');
             listReplyHandler(message);
-        } else if (message.fromMe) {
+        } else if (SUPERUSERS.includes(message.from)) {
             switch (message.body) {
                 case 'getid':
                     logger(message, 'ID requested.');
