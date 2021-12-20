@@ -1,19 +1,20 @@
 // Dependencies:
 
-const moovi = require('./mooviFunctions')
+const moovi = require('./mooviFunctions');
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 const { Client, List } = require('whatsapp-web.js');
 
 let client; // FIXME: should this be here?
+const SESSION_FILE_PATH = './session.json';
+
 
 // Helper functions:
 
 /**Function that adds a timestamp to the logged message (debugging purposes).*/
-function logger(content) {
+function logger(message, content = '') {
     let now = new Date(Date.now());
-    console.log(`[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}] ->`);
-    console.log(content);
+    console.log(`[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}] -> ${content} ${JSON.stringify(message)}\n`);
 }
 
 
@@ -24,7 +25,6 @@ async function init() {
 
     // Session authentication:
 
-    const SESSION_FILE_PATH = './session.json';
     let sessionData;
 
     if (fs.existsSync(SESSION_FILE_PATH)) {
@@ -59,36 +59,32 @@ async function init() {
 
     client.on('message_create', message => {
         if (message.type == 'list_response') {
-            listReplyHandler(message)
-        } else if (message.fromMe && message.body.startsWith("!esei")) {
-            message.body.match(/(?<=\-)\S*/g).map(function (command, index) {
-                switch (command) {
-                    case 'getid':
-                        logger("ID requested.");
-                        message.reply(message.to);
-                        break;
-                    case 'getevents':
-                        logger("Events requested.");
-                        sendEvents(message.to)
-                        break;
-                    case 'getupcomingevents':
-                        logger("Upcoming events requested.");
-                        sendUpcomingEvents(message.to)
-                        break;
-                    case 'new':
-                        logger("New method test requested.");
-                        newEvents(message.to)
-                        break;
-                    case 'list':
-                        logger("List requested.");
-                        sendDefaultList(message.to)
-                        break;
-                    default:
-                        logger("No matches for the requested message.");
-                        logger(message)
-                        break;
-                }
-            })
+            logger(message, "List response detected.");
+            listReplyHandler(message);
+        } else if (message.fromMe) {
+            switch (message.body) {
+                case 'getid':
+                    logger(message, "ID requested.");
+                    message.reply(message.to);
+                    break;
+                case 'getevents':
+                    logger(message, "Events requested.");
+                    sendEvents(message);
+                    break;
+                case 'cachedevents':
+                    logger(message, "Cached events requested.");
+                    cachedEvents(message);
+                    break;
+                case 'list':
+                    logger(message, "List requested.");
+                    sendEventList(message);
+                    break;
+                default:
+                    logger(message, "No matches for the requested message.");
+                    break;
+            }
+        } else {
+            logger(message, "Non-commanded message.");
         }
     });
 
