@@ -104,33 +104,30 @@ async function sendEvents(message) { // DEPRECATED
 }
 
 /**Function that sends a formatted event list to the specified chat.*/
-async function sendDefaultList(chatId) {
-    let sections = [{
-        title: 'Funciones',
-        rows: [{
-            id: "events_id",
-            title: 'Ver eventos',
-            description: 'Devuelve todos los eventos de Ing Informatica'
-        }, {
-            title: 'ListItem2'
-        }]
-    }];
+async function sendEventList(message) {
+    let events = require(moovi.DATABASE_FILE);
+    let identifiers = Object.keys(events);
 
-    client.sendMessage(chatId, new List('List body', 'Interacciones', sections, 'Title', 'footer'))
+    let rows = [];
+    let sections = [{title: "Eventos:", rows: rows}];
+
+    identifiers.forEach(function (identifier) {
+        sections[0].rows.push({
+            id: identifier,
+            title: events[identifier].name,
+            description: events[identifier].description != '' ? events[identifier].description.length <= 39 ? events[identifier].description : events[identifier].description.slice(0, 39) + '...' : 'No existe descripción para este evento.'
+        });
+    });
+
+    client.sendMessage(message.to, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', ''))
 }
 
 /**Function that serves as handler for list-specific replies.*/
 async function listReplyHandler(message) {
-    switch (message.selectedRowId) {
-        case 'events_id': {
-            sendEvents(message.from)
-        }
-        default:
-            return "Algo ha fallado, prueba de nuevo.";
-    }
+    message.reply(moovi.eventStringify(require(moovi.DATABASE_FILE)[message.selectedRowId]));
 }
 
 
 // Initialization:
 
-init()
+init();
