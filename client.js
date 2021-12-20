@@ -58,32 +58,34 @@ async function init() {
     // Bot commands:
 
     client.on('message_create', message => {
-        logger(message)
         if (message.type == 'list_response') {
             listReplyHandler(message)
-        }
-        if (message.fromMe && message.body.startsWith("!esei")) {
-            logger("correct syntax");
+        } else if (message.fromMe && message.body.startsWith("!esei")) {
             message.body.match(/(?<=\-)\S*/g).map(function (command, index) {
                 switch (command) {
                     case 'getid':
-                        logger("id requested");
+                        logger("ID requested.");
                         message.reply(message.to);
                         break;
                     case 'getevents':
-                        logger("events requested");
+                        logger("Events requested.");
                         sendEvents(message.to)
                         break;
                     case 'getupcomingevents':
-                        logger("events requested");
+                        logger("Upcoming events requested.");
                         sendUpcomingEvents(message.to)
                         break;
+                    case 'new':
+                        logger("New method test requested.");
+                        newEvents(message.to)
+                        break;
                     case 'list':
-                        logger("list requested");
+                        logger("List requested.");
                         sendDefaultList(message.to)
                         break;
                     default:
-                        logger("no matches");
+                        logger("No matches for the requested message.");
+                        logger(message)
                         break;
                 }
             })
@@ -91,6 +93,11 @@ async function init() {
     });
 
     client.initialize();
+}
+
+async function newEvents(chatId) {
+    let events = require("./events.json");
+    Object.keys(events).map(function (event) {console.log(events[event]); client.sendMessage(chatId, moovi.eventStringify(events[event]))})
 }
 
 /**Function that sends each formatted event to the specified chat.*/
