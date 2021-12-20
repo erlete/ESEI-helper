@@ -18,7 +18,7 @@ function eventStringify(event) { // TODO: add remaining time parameter.
 		`${event.course_category == '' ? '': '\`\`\`Curso:\`\`\`' + event.course_category + '\n\n'}` +
 		`${event.course_category == '' ? '': '\`\`\`Módulo:\`\`\`' + event.course_name + '\n\n'}` +
 		`\`\`\`Evento:\`\`\` *${event.name.toUpperCase()}*\n\n` +
-		`\`\`\`Fecha límite:\`\`\` ${event.date.toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
+		`\`\`\`Fecha límite:\`\`\` ${new Date(event.date).toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
 		`${event.location == '' ? '' : '\`\`\`Localización:\`\`\`' + event.location + '\n\n'}` +
 		`${event.description == '' ? '' : '\`\`\`Descripción:\`\`\`' + event.description + '\n\n'}` +
 		`\`\`\`URL:\`\`\` ${event.url}`
@@ -123,7 +123,8 @@ async function getEvents(calendar_data) {
 			})).join(' ').replace(/(\s\.)+/g, "."),
 			course_name: "course" in event ? event.course.fullnamedisplay : '',
 			course_category: "course" in event ? event.course.coursecategory : '',
-			date: new Date((event.timestart + 3600) * 1000), // Hourly delay compensation.
+			date: (event.timestart + 3600) * 1000, // Hourly delay compensation.
+			location: event.location,
 			url: event.url,
 		}
 	})
@@ -145,7 +146,7 @@ async function getUpcomingEvents(calendar_data) {
 			})).join(' ').replace(/(\s\.)+/g, "."),
 			course_name: "course" in event ? event.course.fullnamedisplay : '',
 			course_category: "course" in event ? event.course.coursecategory : '',
-			date: new Date((event.timestart + 3600) * 1000), // Hourly delay compensation.
+			date: (event.timestart + 3600) * 1000, // Hourly delay compensation.
 			location: event.location,
 			url: event.url
 		}
@@ -156,7 +157,7 @@ async function getUpcomingEvents(calendar_data) {
 
 /**Returns a unique identifier for each event.*/
 function getId(event) {
-	return `${event.date.getTime()}_${event.name.split(' ').map(function (word) {return word[0]}).join('').toLowerCase()}`;
+	return `${new Date(event.date).getTime()}_${event.name.split(' ').map(function (word) {return word[0]}).join('').toLowerCase()}`;
 }
 
 /**Updates a JSON database that contains every event.*/

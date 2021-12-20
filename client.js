@@ -97,7 +97,7 @@ async function init() {
 
 async function newEvents(chatId) {
     let events = require("./events.json");
-    Object.keys(events).map(function (event) {console.log(events[event]); client.sendMessage(chatId, moovi.eventStringify(events[event]))})
+    Object.keys(events).map(function (event) {client.sendMessage(chatId, moovi.eventStringify(events[event]))})
 }
 
 /**Function that sends each formatted event to the specified chat.*/
