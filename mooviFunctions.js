@@ -1,23 +1,16 @@
 //Dependencies
 const axios = require("axios"); // Requests module
 const fs = require("fs");
-require('dotenv').config()
+
 /*
 Import .env file for testing purposes (para que no tengamos que compartir la cuenta de moovi)
 Se accede a las variables asi : process.env.MOOVI_USERNAME.
 Te añadi un .env.example para que veas, quitale el .example y cambialo
 */
+require('dotenv').config()
+
 const url = require('url') //Module to allow sending forms data url-param encoded
 
-
-
-// Constants:
-const CURRENT_YEAR = new Date(Date.now()).getFullYear();
-const CURRENT_MONTH = new Date(Date.now()).getMonth() + 1;
-/** Estas dos variables no deberias ponerlas porque una vez creado el cliente
- * si se mantiene encendido mucho tiempo dejaran de ser correctas, las he cambiado
- * en la funcion que definiste tu para que se lean en ejecución y le cambie el nombre.
- */
 
 
 // Helper functions:
@@ -25,7 +18,12 @@ const CURRENT_MONTH = new Date(Date.now()).getMonth() + 1;
 /**Function to return a formatted string with event data*/
 function eventStringify(event) {
 
-	return `Name: ${event.name.toUpperCase()}\nDescription: ${event.description}\nCourse name: ${event.course_name}\nCourse category: ${event.course_category}\nDate: ${event.date}\nURL: ${event.url}`
+	return `\`\`\`Carrera:\`\`\` ${event.course_category}\n\n` +
+		`\`\`\`Materia:\`\`\` ${event.course_name}\n\n` +
+		`\`\`\`Título:\`\`\` *${event.name.toUpperCase()}*\n\n` +
+		`\`\`\`Descripción:\`\`\` ${event.description}\n\n` +
+		`\`\`\`Fecha de entrega:\`\`\` ${event.date.toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
+		`\`\`\`URL:\`\`\` ${event.url}`
 }
 /**Function to return an object with the time difference between two EPOCH dates*/
 function format_difference(date1, date2) {
@@ -124,7 +122,6 @@ async function getEvents(calendar_data) {
 			description: (event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {
 				return content.length > 0 ? content : null
 			}).map(function (content) {
-				console.log(content)
 				return content.replace(/[\r\n]+/g, " ").trim()
 			})).join(' ').replace(/(\s\.)+/g, "."),
 			course_name: "course" in event ? event.course.fullnamedisplay : "Undefined course.",
