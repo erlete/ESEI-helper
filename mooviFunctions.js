@@ -1,10 +1,12 @@
 // Dependencies:
 
-const axios = require("axios");
-const fs = require("fs");
-const url = require('url') // Encoded data tool for URL-params.
+const axios = require('axios');
+const fs = require('fs');
+const url = require('url'); // Encoded data tool for URL-params.
 
-require('dotenv').config()
+require('dotenv').config();
+
+let DATABASE = './events.json';
 
 
 // Format functions:
@@ -157,6 +159,43 @@ async function getUpcomingEvents(calendar_data) {
 }
 
 
+/**Returns a unique identifier for each event.*/
+function getId(event) {
+	return `${event.date.getTime()}_${event.name.split(' ').map(function (word) {return word[0]}).join('').toLowerCase()}`;
+}
+
+/**Updates a JSON database that contains every event.*/
+async function updateEvents() {
+	let data = await getEvents(await getCalendarData());
+	let data_entries = data.map(function (event) {return getId(event)});
+	let old_entries = require(DATABASE);
+	let identifier;
+
+	// Include added entries:
+	data.forEach(function (entry) {
+		identifier = getId(entry);
+
+		if (!(identifier in old_entries)) {
+			old_entries[identifier] = entry;
+		}
+	})
+
+	// Discard removed entries:
+	Object.keys(old_entries).forEach(function (entry) {
+		if (!data_entries.includes(entry)) {
+			delete old_entries[entry];
+		}
+	})
+
+	// Write output:
+	fs.writeFile(DATABASE, JSON.stringify(old_entries), (err) => {
+        if (err) {
+            console.error(err);
+        }
+    });
+}
+
+
 // Module export:
 
 module.exports = {
@@ -167,5 +206,6 @@ module.exports = {
 	wsRequest,
 	getCalendarData,
 	getEvents,
-	getUpcomingEvents
+	getUpcomingEvents,
+	updateEvents
 }
