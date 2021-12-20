@@ -123,7 +123,7 @@ async function getEvents(calendar_data) {
 			})).join(' ').replace(/(\s\.)+/g, "."),
 			course_name: "course" in event ? event.course.fullnamedisplay : '',
 			course_category: "course" in event ? event.course.coursecategory : '',
-			date: new Date(event.timestart * 1000),
+			date: new Date((event.timestart + 3600) * 1000), // Hourly delay compensation.
 			url: event.url,
 		}
 	})
@@ -145,14 +145,14 @@ async function getUpcomingEvents(calendar_data) {
 			})).join(' ').replace(/(\s\.)+/g, "."),
 			course_name: "course" in event ? event.course.fullnamedisplay : '',
 			course_category: "course" in event ? event.course.coursecategory : '',
-			date: new Date(event.timestart * 1000),
-			url: event.url,
+			date: new Date((event.timestart + 3600) * 1000), // Hourly delay compensation.
+			location: event.location,
+			url: event.url
 		}
 	}).filter(function (event) {
 		return event.date >= new Date(Date.now()) ? event : null
 	})
 }
-
 
 /**Returns a unique identifier for each event.*/
 function getId(event) {
