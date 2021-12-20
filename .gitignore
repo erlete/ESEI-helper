@@ -2,6 +2,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/node,jspm,macos,visualstudiocode,visualstudio,windows,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,jspm,macos,visualstudiocode,visualstudio,windows,linux
 session.json
+events.json
 .tests*
 
 ### jspm ###
