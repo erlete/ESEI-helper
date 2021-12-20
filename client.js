@@ -135,14 +135,13 @@ async function listReplyHandler(message) {
 		`Evento: ${event.name.toUpperCase()}`,
 		`\nVisita ${event.url} para más información acerca del evento.`
 	);
-	// message.reply(button);
-	client.sendMessage(message.from, button)
+	client.sendMessage(message.to, button);
 }
 
+/**Function that serves as handler for button-specific replies.*/
 async function buttonReplyHandler(message) {
 	let difference = moovi.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)));
-	message.reply(`Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
-	client.sendMessage(message.from, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
+	client.sendMessage(message.to, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
 }
 
 

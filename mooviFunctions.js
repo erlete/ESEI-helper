@@ -141,14 +141,12 @@ async function updateEvents() {
 /**Function that returns a formatted string with event data.*/
 function eventStringify(event) { // TODO: add remaining time parameter.
 
-	return ('' + // FIXME: Maybe use a filter method to simplify this expression?
-		`${event.course_category == '' ? '': '\`\`\`Curso:\`\`\`' + event.course_category + '\n\n'}` +
-		`${event.course_category == '' ? '': '\`\`\`Módulo:\`\`\`' + event.course_name + '\n\n'}` +
-		`\`\`\`Evento:\`\`\` *${event.name.toUpperCase()}*\n\n` +
-		`\`\`\`Fecha límite:\`\`\` ${new Date(event.date).toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
-		`${event.location == '' ? '' : '\`\`\`Localización:\`\`\`' + event.location + '\n\n'}` +
-		`${event.description == '' ? '' : '\`\`\`Descripción:\`\`\`' + event.description + '\n\n'}` +
-		`\`\`\`URL:\`\`\` ${event.url}`
+	return ('' +
+		`${event.course_category == '' ? '': `*Curso:* ${event.course_category}\n\n`}` +
+		`${event.course_category == '' ? '': `*Módulo:* ${event.course_name}\n\n`}` +
+		`*Fecha límite:* ${new Date(event.date).toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
+		`${event.location == '' ? '' : `*Localización:* ${event.location}\n\n`}` +
+		`${event.description == '' ? '' : `*Descripción:* _${event.description}_`}`
 	);
 }
 
