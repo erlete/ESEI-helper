@@ -52,7 +52,7 @@ async function init() {
 
 	client.on('ready', () => {
 		logger('Client is ready');
-	});
+	}
 
 
 	// Bot commands:
@@ -70,14 +70,6 @@ async function init() {
 					logger(message, 'ID requested.');
 					message.reply(message.to);
 					break;
-				case 'getevents':
-					logger(message, 'Live events requested.');
-					sendEvents(message);
-					break;
-				case 'getcachedevents':
-					logger(message, 'Cached events requested.');
-					cachedEvents(message);
-					break;
 				case 'geteventlist':
 					logger(message, 'Event list requested.');
 					sendEventList(message);
@@ -92,19 +84,6 @@ async function init() {
 	});
 
 	client.initialize();
-}
-
-/**Function that fetches and sends event data from the local database instead of the remote one.*/
-async function cachedEvents(message) {
-	let events = require(moovi.DATABASE_FILE);
-	Object.keys(events).map(function (event) {client.sendMessage(message.to, moovi.eventStringify(events[event]))});
-}
-
-/**Function that sends each formatted event to the message sender's chat.*/
-async function sendEvents(message) { // DEPRECATED
-	(await moovi.getEvents(await moovi.getCalendarData())).map(function (event) {
-		client.sendMessage(message.to, moovi.eventStringify(event));
-	});
 }
 
 /**Function that sends a formatted event list to the message sender's chat.*/
