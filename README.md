@@ -1,4 +1,4 @@
-# ESEI-bot
+# ESEI-helper
 
 A Whatsapp bot developed by and for the ESEI's students.
 
