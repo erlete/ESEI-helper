@@ -164,33 +164,39 @@ function getId(event) {
 async function updateEvents() {
 	let data = await getEvents(await getCalendarData());
 	let data_entries = data.map(function (event) {return getId(event)});
-	let old_entries = require(DATABASE);
+	let current_entries = require(DATABASE);
+	let old_entries = {...current_entries};
 	let identifier;
 
 	// Include added entries:
 	data.forEach(function (entry) {
 		identifier = getId(entry);
-
-		if (!(identifier in old_entries)) {
-			old_entries[identifier] = entry;
+		if (!(identifier in current_entries)) {
+			current_entries[identifier] = entry;
 		}
 	})
 
 	// Discard removed entries:
-	Object.keys(old_entries).forEach(function (entry) {
+	Object.keys(current_entries).forEach(function (entry) {
 		if (!data_entries.includes(entry)) {
-			delete old_entries[entry];
+			delete current_entries[entry];
 		}
 	})
 
 	// Write output:
-	fs.writeFile(DATABASE, JSON.stringify(old_entries), (err) => {
-        if (err) {
-            console.error(err);
-        }
-    });
+	if (JSON.stringify(current_entries) !== JSON.stringify(old_entries)) {
+		console.log("Modified entries, saving data.")
+		fs.writeFile(DATABASE, JSON.stringify(current_entries), (err) => {
+        	if (err) {
+            	console.error(err);
+    	    }
+	    });
+	} else {
+		console.log("No modified entries, keeping original data.");
+	}
 }
 
+updateEvents();
 
 // Module export:
 
