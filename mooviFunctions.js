@@ -85,10 +85,10 @@ async function getEvents(calendar_data) {
 			description: (event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {
 				return content.length > 0 ? content : null
 			}).map(function (content) {
-				return content.replace(/[\r\n]+/g, " ").trim()
-			})).join(' ').replace(/(\s\.)+/g, "."),
-			course_name: "course" in event ? event.course.fullnamedisplay : '',
-			course_category: "course" in event ? event.course.coursecategory : '',
+				return content.replace(/[\r\n]+/g, ' ').trim()
+			})).join(' ').replace(/(\s\.)+/g, '.'),
+			course_name: 'course' in event ? event.course.fullnamedisplay : '',
+			course_category: 'course' in event ? event.course.coursecategory : '',
 			date: (event.timestart + 3600) * 1000, // Hourly delay compensation.
 			location: event.location,
 			url: event.url
@@ -128,10 +128,10 @@ async function updateEvents() {
 
 	// Write output:
 	if (JSON.stringify(current_entries) !== JSON.stringify(old_entries)) {
-		console.log("Modified entries, saving data.");
-		fs.writeFile(DATABASE_FILE, JSON.stringify(current_entries), (err) => {if (error) {console.error(error)}});
+		console.log('Modified entries, saving data.');
+		fs.writeFile(DATABASE_FILE, JSON.stringify(current_entries), (error) => {if (error) {console.error(error)}});
 	} else {
-		console.log("No modified entries, keeping original data.");
+		console.log('No modified entries, keeping original data.');
 	}
 }
 

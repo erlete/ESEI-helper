@@ -5,13 +5,13 @@ const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 const { Client, List } = require('whatsapp-web.js');
 
-let client; // FIXME: should this be here?
 const SESSION_FILE_PATH = './session.json';
+let client, sessionData;
 
 
 // Helper functions:
 
-/**Function that adds a timestamp to the logged message (debugging purposes).*/
+/**Function that adds a custom timestamp to the logged message (debugging purposes).*/
 function logger(message, content = '') {
     let now = new Date(Date.now());
     console.log(`[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}] -> ${content} ${JSON.stringify(message)}\n`);
@@ -20,12 +20,10 @@ function logger(message, content = '') {
 
 // Bot's functions:
 
-/**Function that contains Whatsapp's bot's mainloop.*/
+/**Function that contains Whatsapp bot's mainloop.*/
 async function init() {
 
     // Session authentication:
-
-    let sessionData;
 
     if (fs.existsSync(SESSION_FILE_PATH)) {
         sessionData = require(SESSION_FILE_PATH);
@@ -59,57 +57,58 @@ async function init() {
 
     client.on('message_create', message => {
         if (message.type == 'list_response') {
-            logger(message, "List response detected.");
+            logger(message, 'List response detected.');
             listReplyHandler(message);
         } else if (message.fromMe) {
             switch (message.body) {
                 case 'getid':
-                    logger(message, "ID requested.");
+                    logger(message, 'ID requested.');
                     message.reply(message.to);
                     break;
                 case 'getevents':
-                    logger(message, "Events requested.");
+                    logger(message, 'Live events requested.');
                     sendEvents(message);
                     break;
-                case 'cachedevents':
-                    logger(message, "Cached events requested.");
+                case 'getcachedevents':
+                    logger(message, 'Cached events requested.');
                     cachedEvents(message);
                     break;
-                case 'list':
-                    logger(message, "List requested.");
+                case 'geteventlist':
+                    logger(message, 'Event list requested.');
                     sendEventList(message);
                     break;
                 default:
-                    logger(message, "No matches for the requested message.");
+                    logger(message, 'No matches for the requested message.');
                     break;
             }
         } else {
-            logger(message, "Non-commanded message.");
+            logger(message, 'Non-commanded message.');
         }
     });
 
     client.initialize();
 }
 
+/**Function that fetches and sends event data from the local database instead of the remote one.*/
 async function cachedEvents(message) {
     let events = require(moovi.DATABASE_FILE);
     Object.keys(events).map(function (event) {client.sendMessage(message.to, moovi.eventStringify(events[event]))});
 }
 
-/**Function that sends each formatted event to the specified chat but only for upcoming events.*/
+/**Function that sends each formatted event to the message sender's chat.*/
 async function sendEvents(message) { // DEPRECATED
     (await moovi.getEvents(await moovi.getCalendarData())).map(function (event) {
         client.sendMessage(message.to, moovi.eventStringify(event));
     });
 }
 
-/**Function that sends a formatted event list to the specified chat.*/
+/**Function that sends a formatted event list to the message sender's chat.*/
 async function sendEventList(message) {
     let events = require(moovi.DATABASE_FILE);
     let identifiers = Object.keys(events);
 
     let rows = [];
-    let sections = [{title: "Eventos:", rows: rows}];
+    let sections = [{title: 'Eventos:', rows: rows}];
 
     identifiers.forEach(function (identifier) {
         sections[0].rows.push({
