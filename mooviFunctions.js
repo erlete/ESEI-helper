@@ -12,12 +12,19 @@ require('dotenv').config()
 /**Function that returns a formatted string with event data.*/
 function eventStringify(event) { // TODO: add remaining time parameter.
 
-	return `\`\`\`Carrera:\`\`\` ${event.course_category}\n\n` +
-		`\`\`\`Materia:\`\`\` ${event.course_name}\n\n` +
-		`\`\`\`Título:\`\`\` *${event.name.toUpperCase()}*\n\n` +
+	let output = '';
+
+	if (event.course_category != '') {
+		output += `\`\`\`Curso:\`\`\` ${event.course_category}\n\n` +
+			`\`\`\`Módulo:\`\`\` ${event.course_name}\n\n`;
+	}
+
+	output += `\`\`\`Título:\`\`\` *${event.name.toUpperCase()}*\n\n` +
 		`\`\`\`Descripción:\`\`\` ${event.description}\n\n` +
 		`\`\`\`Fecha de entrega:\`\`\` ${event.date.toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
-		`\`\`\`URL:\`\`\` ${event.url}`
+		`\`\`\`URL:\`\`\` ${event.url}`;
+
+	return output;
 }
 
 /**Function that returns an object containing the time difference between two EPOCH dates.*/
@@ -88,18 +95,19 @@ async function wsRequest(ws_function, req_params) {
 }
 
 /**Function that requests Moodle's calendar data for the next two months.*/
-async function getCalendarData(year = new Date(Date.now()).getFullYear(), month = new Date(Date.now()).getMonth() + 1) {
+async function getCalendarData(c_year = new Date(Date.now()).getFullYear(), c_month = new Date(Date.now()).getMonth() + 1) {
 
-	let crnt_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
-		year: year,
-		month: month,
+	let current_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
+		year: c_year,
+		month: c_month,
 	})).weeks
 
-	let nxt_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
-		year: month == 12 ? year + 1 : year,
-		month: month == 12 ? 1 : month + 1,
+	let next_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
+		year: c_month == 12 ? c_year + 1 : c_year,
+		month: c_month == 12 ? 1 : c_month + 1
 	})).weeks
-	return crnt_month.concat(nxt_month);
+
+	return current_month.concat(next_month);
 }
 
 /**Function that processes previously fetched calendar data.*/
@@ -116,11 +124,35 @@ async function getEvents(calendar_data) {
 			}).map(function (content) {
 				return content.replace(/[\r\n]+/g, " ").trim()
 			})).join(' ').replace(/(\s\.)+/g, "."),
-			course_name: "course" in event ? event.course.fullnamedisplay : "Undefined course.",
-			course_category: "course" in event ? event.course.coursecategory : "Undefined course.",
+			course_name: "course" in event ? event.course.fullnamedisplay : '',
+			course_category: "course" in event ? event.course.coursecategory : '',
 			date: new Date(event.timestart * 1000),
 			url: event.url,
 		}
+	})
+}
+
+/**Function that processes previously fetched calendar data but only for upcoming events.*/
+async function getUpcomingEvents(calendar_data) {
+	return calendar_data.map(function (week) {
+		return week.days
+	}).flat().map(function (day) {
+		return day.events
+	}).flat().map(function (event) {
+		return {
+			name: event.name,
+			description: (event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {
+				return content.length > 0 ? content : null
+			}).map(function (content) {
+				return content.replace(/[\r\n]+/g, " ").trim()
+			})).join(' ').replace(/(\s\.)+/g, "."),
+			course_name: "course" in event ? event.course.fullnamedisplay : '',
+			course_category: "course" in event ? event.course.coursecategory : '',
+			date: new Date(event.timestart * 1000),
+			url: event.url,
+		}
+	}).filter(function (event) {
+		return event.date >= new Date(Date.now()) ? event : null
 	})
 }
 
@@ -134,5 +166,6 @@ module.exports = {
 	initToken,
 	wsRequest,
 	getCalendarData,
-	getEvents
+	getEvents,
+	getUpcomingEvents
 }

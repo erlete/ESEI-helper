@@ -7,7 +7,6 @@ const { Client, List } = require('whatsapp-web.js');
 
 let client; // FIXME: should this be here?
 
-
 // Helper functions:
 
 /**Function that adds a timestamp to the logged message (debugging purposes).*/
@@ -75,6 +74,10 @@ async function init() {
                         logger("events requested");
                         sendEvents(message.to)
                         break;
+                    case 'getupcomingevents':
+                        logger("events requested");
+                        sendUpcomingEvents(message.to)
+                        break;
                     case 'list':
                         logger("list requested");
                         sendDefaultList(message.to)
@@ -93,6 +96,13 @@ async function init() {
 /**Function that sends each formatted event to the specified chat.*/
 async function sendEvents(chatId) {
     (await moovi.getEvents(await moovi.getCalendarData())).map(function (event, index) {
+        client.sendMessage(chatId, moovi.eventStringify(event)) // TODO: split events.
+    })
+}
+
+/**Function that sends each formatted event to the specified chat but only for upcoming events.*/
+async function sendUpcomingEvents(chatId) {
+    (await moovi.getUpcomingEvents(await moovi.getCalendarData())).map(function (event, index) {
         client.sendMessage(chatId, moovi.eventStringify(event)) // TODO: split events.
     })
 }
