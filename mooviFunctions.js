@@ -1,22 +1,16 @@
-//Dependencies
-const axios = require("axios"); // Requests module
-const fs = require("fs");
+// Dependencies:
 
-/*
-Import .env file for testing purposes (para que no tengamos que compartir la cuenta de moovi)
-Se accede a las variables asi : process.env.MOOVI_USERNAME.
-Te añadi un .env.example para que veas, quitale el .example y cambialo
-*/
+const axios = require("axios");
+const fs = require("fs");
+const url = require('url') // Encoded data tool for URL-params.
+
 require('dotenv').config()
 
-const url = require('url') //Module to allow sending forms data url-param encoded
 
+// Format functions:
 
-
-// Helper functions:
-
-/**Function to return a formatted string with event data*/
-function eventStringify(event) {
+/**Function that returns a formatted string with event data.*/
+function eventStringify(event) { // TODO: add remaining time parameter.
 
 	return `\`\`\`Carrera:\`\`\` ${event.course_category}\n\n` +
 		`\`\`\`Materia:\`\`\` ${event.course_name}\n\n` +
@@ -25,11 +19,12 @@ function eventStringify(event) {
 		`\`\`\`Fecha de entrega:\`\`\` ${event.date.toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
 		`\`\`\`URL:\`\`\` ${event.url}`
 }
-/**Function to return an object with the time difference between two EPOCH dates*/
+
+/**Function that returns an object containing the time difference between two EPOCH dates.*/
 function format_difference(date1, date2) {
 
 	let diff = Math.abs(date1 - date2); // Returns the ms difference.
-	days = diff / 86400000
+	days = diff / 86400000;
 	hours = days % 1 * 24;
 	minutes = hours % 1 * 60;
 	seconds = minutes % 1 * 60;
@@ -43,18 +38,17 @@ function format_difference(date1, date2) {
 }
 
 
+// WebService Authentication:
 
-// WebService Authentication
-
-/**Function to initialize the token with .env default credentials
- * Allows to define the ws_token variable without passing env variables each time*/
+/**Function that initializes the token with default .env credentials.
+ * Allows automatic ws_token variable definition (with no additional .env parameters).*/
 async function initToken() {
 
 	ws_token = await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD)
 	return true;
 }
 
-/**Function that gets a Moodle webService token from an username and password*/
+/**Function that gets a Moodle webService token from an username and password.*/
 async function getWsToken(username, password) {
 
 	return (await axios.post('https://moovi.uvigo.gal/login/token.php', {}, {
@@ -68,16 +62,15 @@ async function getWsToken(username, password) {
 }
 
 
+// Content processing:
 
-// 1. Content retrieval:
-
-/**CAUTION THIS A GENERAL MOODLE WEBSERVICE REQUEST, READ :
+/**CAUTION THIS A GENERAL MOODLE WEBSERVICE REQUEST, READ:
  * Standard webService request to allow cleaner code, takes two parameters:
- * ws_function: String 	(Moodle name of the content requested)
- * req_params: Object	(Object containing all further data needed sent to the server)
+ * ws_function: String 	(Requested content's Moodle identifier)
+ * req_params: Object	(Object containing all further data required, which is sent to the server)
  * Example:
- * ws_function = 'core_calendar_get_calendar_monthly_view' //Monthly calendar function name
- * req_params = {	year : 2021	, month : 12	} //Data needed to obtain the calendar info*/
+ * ws_function = 'core_calendar_get_calendar_monthly_view' // Monthly calendar function name.
+ * req_params = {	year : 2021	, month : 12	} // Data required to fetch calendar's info.*/
 async function wsRequest(ws_function, req_params) {
 
 	if (typeof ws_token === 'undefined') {
@@ -94,14 +87,14 @@ async function wsRequest(ws_function, req_params) {
 	})).data
 }
 
-/**Function that requests monthly calendar twice.
- * First one with current month and second one with next month*/
+/**Function that requests Moodle's calendar data for the next two months.*/
 async function getCalendarData(year = new Date(Date.now()).getFullYear(), month = new Date(Date.now()).getMonth() + 1) {
 
 	let crnt_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
 		year: year,
 		month: month,
 	})).weeks
+
 	let nxt_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
 		year: month == 12 ? year + 1 : year,
 		month: month == 12 ? 1 : month + 1,
@@ -109,8 +102,7 @@ async function getCalendarData(year = new Date(Date.now()).getFullYear(), month 
 	return crnt_month.concat(nxt_month);
 }
 
-
-
+/**Function that processes previously fetched calendar data.*/
 async function getEvents(calendar_data) {
 	return calendar_data.map(function (week) {
 		return week.days
@@ -130,9 +122,12 @@ async function getEvents(calendar_data) {
 			url: event.url,
 		}
 	})
-
 }
-module.exports = { //Exportamos las funciones para tener el codigo del cliente mas limpio
+
+
+// Module export:
+
+module.exports = {
 	eventStringify,
 	format_difference,
 	getWsToken,

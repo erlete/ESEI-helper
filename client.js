@@ -1,15 +1,17 @@
-const moovi = require('./mooviFunctions') //Requerimos las funciones de manejo de Moovi
+// Dependencies:
+
+const moovi = require('./mooviFunctions')
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 
-const {
-    Client,
-    List
-} = require('whatsapp-web.js');
-let client;
-// Client initialization
+
+// Bot's functions:
+
+/**Function that contains Whatsapp's bot's mainloop.*/
 async function init() {
-    // console.log(moovi.getEvents(await moovi.getCalendarData()))
+
+    // Session authentication:
+
     const SESSION_FILE_PATH = './session.json';
     let sessionData;
 
@@ -21,28 +23,6 @@ async function init() {
         session: sessionData
     });
 
-    client.on('qr', qr => {
-        qrcode.generate(qr, {
-            small: true
-        });
-
-    });
-    client.on('ready', () => {
-        console.log('Client is ready');
-        var now = new Date();
-        var ms_to_12 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12, 0, 0, 0) - now;
-        console.log(`Se va a esperar --> ${ms_to_12} milisegundos, es decir se ejecutará la función a las ${new Date (Date.now() + ms_to_12)}`)
-        setTimeout(function () {
-            sendEvents()
-            console.log("Empezando ciclo de 24 horas")
-            setInterval(function () {
-                sendEvents()
-            }, 86400000);
-        }, ms_to_12);
-
-
-    });
-
     client.on('authenticated', (session) => {
         sessionData = session;
         fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
@@ -52,40 +32,59 @@ async function init() {
         });
     });
 
+    client.on('qr', qr => {
+        qrcode.generate(qr, {
+            small: true
+        });
+    });
+
+    client.on('ready', () => {
+        logger('Client is ready');
+    });
+
+
+    // Bot commands:
 
     client.on('message_create', message => {
-        console.log(message)
+        logger(message)
         if (message.type == 'list_response') {
             listReplyHandler(message)
         }
         if (message.fromMe && message.body.startsWith("!esei")) {
+            logger("correct syntax");
             message.body.match(/(?<=\-)\S*/g).map(function (command, index) {
                 switch (command) {
                     case 'getid':
+                        logger("id requested");
                         message.reply(message.to);
                         break;
                     case 'getevents':
+                        logger("events requested");
                         sendEvents(message.to)
                         break;
                     case 'list':
+                        logger("list requested");
                         sendDefaultList(message.to)
                         break;
                     default:
+                        logger("no matches");
                         break;
                 }
             })
         }
-
     });
+
     client.initialize();
 }
+
+/**Function that sends each formatted event to the specified chat.*/
 async function sendEvents(chatId) {
     (await moovi.getEvents(await moovi.getCalendarData())).map(function (event, index) {
-        client.sendMessage(chatId, moovi.eventStringify(event))
+        client.sendMessage(chatId, moovi.eventStringify(event)) // TODO: split events.
     })
-
-
 }
+
+/**Function that sends a formatted event list to the specified chat.*/
 async function sendDefaultList(chatId) {
     let sections = [{
         title: 'Funciones',
@@ -99,26 +98,20 @@ async function sendDefaultList(chatId) {
     }];
 
     client.sendMessage(chatId, new List('List body', 'Interacciones', sections, 'Title', 'footer'))
-
-
-
 }
 
+/**Function that serves as handler for list-specific replies.*/
 async function listReplyHandler(message) {
-
     switch (message.selectedRowId) {
         case 'events_id': {
             sendEvents(message.from)
-
         }
-
         default:
             return "Algo ha fallado, prueba de nuevo.";
-
-
     }
-
-
 }
+
+
+// Initialization:
 
 init()
