@@ -1,15 +1,46 @@
 // Dependencies:
-
+const {
+	MongoClient
+} = require("mongodb")
 const moovi = require('./mooviFunctions');
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
-const { Client, List, Buttons } = require('whatsapp-web.js');
+const {
+	Client,
+	List,
+	Buttons
+} = require('whatsapp-web.js');
 
 require('dotenv').config();
-const SUPERUSERS = process.env.SUPERUSERS.split(',');
+
 
 const SESSION_FILE_PATH = './session.json';
-let client, sessionData;
+let client, sessionData, ESEI_DB, eventsColl, adminsColl, tokensColl, super_users;
+
+//DB functions
+async function initDB() {
+	return new Promise(async function (resolve, reject) {
+		try {
+			DBClient = await MongoClient.connect(process.env.MONGO_URL, {
+				connectTimeoutMS: 2000,
+				retryWrites: true,
+				useNewUrlParser: true,
+			})
+			// create a database object 
+			ESEI_DB = DBClient.db("ESEI_DB")
+			// create a collection object for each of the collections
+			eventsColl = ESEI_DB.collection("events")
+			adminsColl = ESEI_DB.collection("admins")
+			tokensColl = ESEI_DB.collection("moovi_tokens")
+			resolve()
+		} catch (e) {
+			console.log(e)
+			reject()
+		}
+	})
+}
+
+
 
 // Helper functions:
 
@@ -24,9 +55,10 @@ function logger(message, content = '') {
 
 /**Function that contains Whatsapp bot's mainloop.*/
 async function init() {
-
+	//Initiate connection to the database
+	await initDB()
+	super_users = await adminsColl.find({}).toArray()
 	// Session authentication:
-
 	if (fs.existsSync(SESSION_FILE_PATH)) {
 		sessionData = require(SESSION_FILE_PATH);
 	}
@@ -37,6 +69,7 @@ async function init() {
 
 	client.on('authenticated', (session) => {
 		sessionData = session;
+
 		fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
 			if (err) {
 				console.error(err);
@@ -52,6 +85,11 @@ async function init() {
 
 	client.on('ready', () => {
 		logger('Client is ready');
+		updateEvents()
+
+		setInterval(function () {
+			updateEvents()
+		}, 600000);
 	})
 
 
@@ -64,22 +102,67 @@ async function init() {
 		} else if (message.type == 'buttons_response') {
 			logger(message, 'Button response detected.');
 			buttonReplyHandler(message);
-		} else if (SUPERUSERS.includes(message.from)) {
-			switch (message.body) {
-				case 'getid':
-					logger(message, 'ID requested.');
-					message.reply(message.to);
-					break;
-				case 'geteventlist':
-					logger(message, 'Event list requested.');
-					sendEventList(message);
-					break;
-				default:
-					logger(message, 'No matches for the requested message.');
-					break;
+		} else if (message.body.startsWith('!esei')) {
+			if (super_users.find(x => x.ws_id == message.from) || super_users.find(x => x.ws_id == message.author) || message.fromMe) {
+				let msg_arguments = message.body.match(/(?<=\-)[^\s\-]+/g);
+				if (msg_arguments) {
+					let err_args = [];
+					msg_arguments.map(function (argument, index) {
+						switch (argument) {
+							case 'getid':
+								logger(message, 'ID requested.');
+								message.reply(message.to);
+								break;
+							case 'geteventlist':
+								logger(message, 'Event list requested.');
+								sendEventList(message);
+								break;
+							default:
+								logger(message, 'No matches for the requested argument: ' + argument);
+								err_args.push(argument)
+								break;
+						}
+					})
+					message.reply(`Los argumentos ${err_msg} no tienen un comando asociado :c`)
+				}
+			} else {
+				logger(message, 'Non-admin user: ' + message.from + ' tried to run a command');
+			}
+		} else if (message.body.startsWith('!newadmin')) {
+			if (super_users.find(x => x.ws_id == message.from) || super_users.find(x => x.ws_id == message.author) || message.fromMe) {
+				logger(message, 'Adding new admin');
+
+				let n_admin = {
+					name: message.body.match(/(?<=(name)(:|=))[\S]+/)[0],
+					ws_id: message.body.match(/(?<=(id)(:|=))[\S]+/)[0]
+				}
+				adminsColl.updateOne({
+					name: n_admin.name
+				}, {
+					$set: {
+						name: n_admin.name,
+						ws_id: n_admin.ws_id
+					}
+				}, {
+					upsert: true
+				}, ).then(function (upsert_result) {
+					console.log(upsert_result)
+
+					if (upsert_result.upsertedId) {
+						message.reply(`Succesfully added admin, name:'${n_admin.name}' ws_id:'${n_admin.ws_id}'`)
+					} else if (upsert_result.modifiedCount > 0) {
+						message.reply(`Succesfully updated admin, name:'${n_admin.name}' ws_id:'${n_admin.ws_id}'`)
+
+					} else {
+						message.reply(`Admin already exists`)
+
+					}
+
+				})
 			}
 		} else {
 			logger(message, 'Non-commanded message.');
+			//esto peta la consola permanentemente con cada mensaje
 		}
 	});
 
@@ -88,29 +171,47 @@ async function init() {
 
 /**Function that sends a formatted event list to the message sender's chat.*/
 async function sendEventList(message) {
-	let events = require(moovi.DATABASE_FILE);
-	let identifiers = Object.keys(events);
+	let events = await eventsColl.find({
+		// date: {
+		// 	$gt: Date.now()
+		// }
+	}).toArray()
+	if (events.length) {
 
-	let rows = [];
-	let sections = [{title: 'Eventos:', rows: rows}];
+		let sections = [{
+			title: 'Eventos:',
+			rows: []
+		}];
 
-	identifiers.forEach(function (identifier) {
-		sections[0].rows.push({
-			id: identifier,
-			title: events[identifier].name,
-			description: events[identifier].description != '' ? events[identifier].description.length <= 39 ? events[identifier].description : events[identifier].description.slice(0, 39) + '...' : 'No existe descripción para este evento.'
+		events.forEach(function (event) {
+			sections[0].rows.push({
+				id: event._id,
+				title: event.name,
+				description: event.description != '' ? event.description.length <= 39 ? event.description : event.description.slice(0, 39) + '...' : 'No existe descripción para este evento.'
+			});
 		});
-	});
+		console.log(sections[0].rows)
+		// client.sendMessage(message.from, '```Actualmente no hay eventos :D```');
+		client.sendMessage(message.from, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*'));
 
-	client.sendMessage(message.to, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', ''));
+
+	} else {
+		client.sendMessage(message.from, '```Actualmente no hay eventos :D```');
+
+	}
 }
 
 /**Function that serves as handler for list-specific replies.*/
 async function listReplyHandler(message) {
-	let event = require(moovi.DATABASE_FILE)[message.selectedRowId];
+	let event = await eventsColl.findOne({
+		_id: message.selectedRowId
+	})
 	let button = new Buttons(
 		`\n${moovi.eventStringify(event)}`,
-		[{id: `${event.date}`, body: 'Ver tiempo restante'}],
+		[{
+			id: `${event.date}`,
+			body: 'Ver tiempo restante'
+		}],
 		`Evento: ${event.name.toUpperCase()}`,
 		`\nVisita ${event.url} para más información acerca del evento.`
 	);
@@ -126,4 +227,28 @@ async function buttonReplyHandler(message) {
 
 // Initialization:
 
-init();
+async function updateEvents() {
+	let event_data = await moovi.getEvents(await moovi.getCalendarData());
+	// this is an upsert. We use the update method instead of insert.
+	event_data.forEach(async function (event, index) {
+		let upsertResult = await eventsColl.updateOne({
+				_id: event._id
+			}, {
+				$set: event
+			},
+
+			{
+				upsert: true
+			},
+		)
+		if (upsertResult.upsertedId) {
+			console.log("SE HA AÑADIDO UN NUEVO EVENTO")
+		}
+		if (upsertResult.modifiedCount > 0 && event.date > Date.now()) {
+			console.log("Algo ha cambiado en el evento")
+		}
+	})
+}
+
+
+init()

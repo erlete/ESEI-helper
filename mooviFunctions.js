@@ -8,6 +8,11 @@ require('dotenv').config();
 
 let DATABASE_FILE = './events.json';
 
+function base64(string) {
+	return new Buffer.from(string).toString('base64');
+}
+
+
 
 // WebService Authentication:
 
@@ -69,7 +74,6 @@ async function getCalendarData(c_year = new Date(Date.now()).getFullYear(), c_mo
 		year: c_month == 12 ? c_year + 1 : c_year,
 		month: c_month == 12 ? 1 : c_month + 1
 	})).weeks;
-
 	return current_month.concat(next_month);
 }
 
@@ -89,13 +93,15 @@ async function getEvents(calendar_data) {
 			})).join(' ').replace(/(\s\.)+/g, '.'),
 			course_name: 'course' in event ? event.course.fullnamedisplay : '',
 			course_category: 'course' in event ? event.course.coursecategory : '',
-			date: (event.timestart + 3600) * 1000, // Hourly delay compensation.
+			date: event.timestart * 1000, // Hourly delay compensation. HE QUITADO ESO PORQUE DEBERIA SER EN EL CLIENTE SI NO ES UN LIO
 			location: event.location,
-			url: event.url
+			url: event.url,
+			_id: `${event.id}`,
 		}
-	}).filter(function (event) {
-		return event.date >= new Date(Date.now()) ? event : null;
-	});
+	})
+	// .filter(function (event) {
+	// 	return event.date >= new Date(Date.now()) ? event : null;
+	// });
 }
 
 /**Returns a unique identifier for each event.*/
@@ -107,9 +113,13 @@ function getId(event) {
 async function updateEvents() {
 	let identifier;
 	let data = await getEvents(await getCalendarData());
-	let data_entries = data.map(function (event) {return getId(event)});
+	let data_entries = data.map(function (event) {
+		return getId(event)
+	});
 	let current_entries = require(DATABASE_FILE);
-	let old_entries = {...current_entries};
+	let old_entries = {
+		...current_entries
+	};
 
 	// Include added entries:
 	data.forEach(function (entry) {
@@ -129,7 +139,11 @@ async function updateEvents() {
 	// Write output:
 	if (JSON.stringify(current_entries) !== JSON.stringify(old_entries)) {
 		console.log('Modified entries, saving data.');
-		fs.writeFile(DATABASE_FILE, JSON.stringify(current_entries), (error) => {if (error) {console.error(error)}});
+		fs.writeFile(DATABASE_FILE, JSON.stringify(current_entries), (error) => {
+			if (error) {
+				console.error(error)
+			}
+		});
 	} else {
 		console.log('No modified entries, keeping original data.');
 	}
