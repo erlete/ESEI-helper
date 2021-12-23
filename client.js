@@ -249,15 +249,25 @@ async function updateEvents() {
 				`\n${moovi.eventStringify(event)}`,
 				[{
 					id: `${event.date}`,
-					body: 'Ver tiempo restante'
+					body: 'UwU'
 				}],
-				`NUEVO EVENTO: ${event.name.toUpperCase()}`,
+				`_NUEVO EVENTO_\n${event.name.toUpperCase()}`,
 				`\nVisita ${event.url} para más información acerca del evento.`
 			);
 			client.sendMessage(process.env.GROUP_ID, button);
 		}
 		if (upsertResult.modifiedCount > 0 && event.date > Date.now()) {
-			console.log("Algo ha cambiado en el evento")
+			let button = new Buttons(
+				`\n${moovi.eventStringify(event)}`,
+				[{
+					id: `${event.date}`,
+					body: 'UwU'
+				}],
+				`_EVENT CHANGE_\n ${event.name.toUpperCase()}`,
+				`\nVisita ${event.url} para más información acerca del evento.`
+			);
+			client.sendMessage(process.env.GROUP_ID, button);
+
 		}
 	})
 }
