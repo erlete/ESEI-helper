@@ -251,7 +251,7 @@ async function updateEvents() {
 					id: `${event.date}`,
 					body: 'UwU'
 				}],
-				`_NUEVO EVENTO_\n${event.name.toUpperCase()}`,
+				`NUEVO EVENTO\n${event.name.toUpperCase()}`,
 				`\nVisita ${event.url} para más información acerca del evento.`
 			);
 			client.sendMessage(process.env.GROUP_ID, button);
@@ -263,7 +263,7 @@ async function updateEvents() {
 					id: `${event.date}`,
 					body: 'UwU'
 				}],
-				`_EVENT CHANGE_\n ${event.name.toUpperCase()}`,
+				`EVENT CHANGE\n ${event.name.toUpperCase()}`,
 				`\nVisita ${event.url} para más información acerca del evento.`
 			);
 			client.sendMessage(process.env.GROUP_ID, button);
