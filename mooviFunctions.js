@@ -80,28 +80,28 @@ async function getCalendarData(c_year = new Date(Date.now()).getFullYear(), c_mo
 /**Function that processes previously fetched calendar data but only for upcoming events.*/
 async function getEvents(calendar_data) {
 	return calendar_data.map(function (week) {
-		return week.days
-	}).flat().map(function (day) {
-		return day.events
-	}).flat().map(function (event) {
-		return {
-			name: event.name,
-			description: (event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {
-				return content.length > 0 ? content : null
-			}).map(function (content) {
-				return content.replace(/[\r\n]+/g, ' ').trim()
-			})).join(' ').replace(/(\s\.)+/g, '.'),
-			course_name: 'course' in event ? event.course.fullnamedisplay : '',
-			course_category: 'course' in event ? event.course.coursecategory : '',
-			date: event.timestart * 1000, // Hourly delay compensation. HE QUITADO ESO PORQUE DEBERIA SER EN EL CLIENTE SI NO ES UN LIO
-			location: event.location,
-			url: event.url,
-			_id: `${event.id}`,
-		}
-	})
-	// .filter(function (event) {
-	// 	return event.date >= new Date(Date.now()) ? event : null;
-	// });
+			return week.days
+		}).flat().map(function (day) {
+			return day.events
+		}).flat().map(function (event) {
+			return {
+				name: event.name,
+				description: (event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g) == null ? [] : event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g).filter(function (content) {
+					return content.length > 0 ? content : null
+				}).map(function (content) {
+					return content.replace(/[\r\n]+/g, ' ').trim()
+				})).join(' ').replace(/(\s\.)+/g, '.'),
+				course_name: 'course' in event ? event.course.fullnamedisplay : '',
+				course_category: 'course' in event ? event.course.coursecategory : '',
+				date: event.timestart * 1000, // Hourly delay compensation. HE QUITADO ESO PORQUE DEBERIA SER EN EL CLIENTE SI NO ES UN LIO
+				location: event.location,
+				url: event.url,
+				_id: `${event.id}`,
+			}
+		})
+		.filter(function (event) {
+			return event.date >= new Date(Date.now()) ? event : null;
+		});
 }
 
 /**Returns a unique identifier for each event.*/

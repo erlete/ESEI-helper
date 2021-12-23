@@ -22,12 +22,13 @@ async function initDB() {
 	return new Promise(async function (resolve, reject) {
 		try {
 			DBClient = await MongoClient.connect(process.env.MONGO_URL, {
-				connectTimeoutMS: 2000,
+				connectTimeoutMS: 20000,
 				retryWrites: true,
 				useNewUrlParser: true,
 			})
 			// create a database object 
 			ESEI_DB = DBClient.db("ESEI_DB")
+
 			// create a collection object for each of the collections
 			eventsColl = ESEI_DB.collection("events")
 			adminsColl = ESEI_DB.collection("admins")
@@ -57,6 +58,7 @@ function logger(message, content = '') {
 async function init() {
 	//Initiate connection to the database
 	await initDB()
+	console.log("Database initialized")
 	super_users = await adminsColl.find({}).toArray()
 	// Session authentication:
 	if (fs.existsSync(SESSION_FILE_PATH)) {
@@ -172,9 +174,9 @@ async function init() {
 /**Function that sends a formatted event list to the message sender's chat.*/
 async function sendEventList(message) {
 	let events = await eventsColl.find({
-		// date: {
-		// 	$gt: Date.now()
-		// }
+		date: {
+			$gt: Date.now()
+		}
 	}).toArray()
 	if (events.length) {
 
@@ -243,6 +245,16 @@ async function updateEvents() {
 		)
 		if (upsertResult.upsertedId) {
 			console.log("SE HA AÑADIDO UN NUEVO EVENTO")
+			let button = new Buttons(
+				`\n${moovi.eventStringify(event)}`,
+				[{
+					id: `${event.date}`,
+					body: 'Ver tiempo restante'
+				}],
+				`NUEVO EVENTO: ${event.name.toUpperCase()}`,
+				`\nVisita ${event.url} para más información acerca del evento.`
+			);
+			client.sendMessage(process.env.GROUP_ID, button);
 		}
 		if (upsertResult.modifiedCount > 0 && event.date > Date.now()) {
 			console.log("Algo ha cambiado en el evento")
