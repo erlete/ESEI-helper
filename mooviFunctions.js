@@ -6,7 +6,7 @@ const url = require('url'); // Encoded data tool for URL-params.
 
 require('dotenv').config();
 
-let DATABASE_FILE = './events.json';
+// let DATABASE_FILE = './events.json';
 
 function base64(string) {
 	return new Buffer.from(string).toString('base64');
@@ -19,10 +19,22 @@ function base64(string) {
 /**Function that initializes the token with default .env credentials.
  * Allows automatic ws_token variable definition (with no additional .env parameters).*/
 async function initToken() {
-
-	ws_token = await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD);
+	if (!process.env.MOOVI_TOKEN) {
+		console.log("getting token")
+		fs.writeFileSync('.env', `\nMOOVI_TOKEN=${await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD)}`, {
+			'flag': 'a'
+		}, function (err) {
+			if (err) {
+				return console.error(err);
+			}
+		})
+		require('dotenv').config();
+	}
+	ws_token = process.env.MOOVI_TOKEN
 	return true;
+
 }
+
 
 /**Function that gets a Moodle webService token from an username and password.*/
 async function getWsToken(username, password) {
@@ -110,44 +122,44 @@ function getId(event) {
 }
 
 /**Updates a JSON database that contains every event.*/
-async function updateEvents() {
-	let identifier;
-	let data = await getEvents(await getCalendarData());
-	let data_entries = data.map(function (event) {
-		return getId(event)
-	});
-	let current_entries = require(DATABASE_FILE);
-	let old_entries = {
-		...current_entries
-	};
+// async function updateEvents() {
+// 	let identifier;
+// 	let data = await getEvents(await getCalendarData());
+// 	let data_entries = data.map(function (event) {
+// 		return getId(event)
+// 	});
+// 	let current_entries = require(DATABASE_FILE);
+// 	let old_entries = {
+// 		...current_entries
+// 	};
 
-	// Include added entries:
-	data.forEach(function (entry) {
-		identifier = getId(entry);
-		if (!(identifier in current_entries)) {
-			current_entries[identifier] = entry;
-		}
-	})
+// 	// Include added entries:
+// 	data.forEach(function (entry) {
+// 		identifier = getId(entry);
+// 		if (!(identifier in current_entries)) {
+// 			current_entries[identifier] = entry;
+// 		}
+// 	})
 
-	// Discard removed entries:
-	Object.keys(current_entries).forEach(function (entry) {
-		if (!data_entries.includes(entry)) {
-			delete current_entries[entry];
-		}
-	})
+// 	// Discard removed entries:
+// 	Object.keys(current_entries).forEach(function (entry) {
+// 		if (!data_entries.includes(entry)) {
+// 			delete current_entries[entry];
+// 		}
+// 	})
 
-	// Write output:
-	if (JSON.stringify(current_entries) !== JSON.stringify(old_entries)) {
-		console.log('Modified entries, saving data.');
-		fs.writeFile(DATABASE_FILE, JSON.stringify(current_entries), (error) => {
-			if (error) {
-				console.error(error)
-			}
-		});
-	} else {
-		console.log('No modified entries, keeping original data.');
-	}
-}
+// 	// Write output:
+// 	if (JSON.stringify(current_entries) !== JSON.stringify(old_entries)) {
+// 		console.log('Modified entries, saving data.');
+// 		fs.writeFile(DATABASE_FILE, JSON.stringify(current_entries), (error) => {
+// 			if (error) {
+// 				console.error(error)
+// 			}
+// 		});
+// 	} else {
+// 		console.log('No modified entries, keeping original data.');
+// 	}
+// }
 
 
 // Format functions:
@@ -185,18 +197,15 @@ function dateDifference(date1, date2) {
 // Module export:
 
 module.exports = {
-	DATABASE_FILE,
+	// DATABASE_FILE,
+	// updateEvents,
 
 	initToken,
 	wsRequest,
-
 	getId,
 	getEvents,
 	getWsToken,
 	getCalendarData,
-
-	updateEvents,
-
 	eventStringify,
 	dateDifference
 }
