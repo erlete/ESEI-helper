@@ -1,7 +1,7 @@
 // Dependencies:
 
 const axios = require('axios');
-const fs = require('fs');
+const fs = require('fs-extra');
 const url = require('url'); // Encoded data tool for URL-params.
 
 require('dotenv').config();
@@ -20,7 +20,6 @@ function base64(string) {
  * Allows automatic ws_token variable definition (with no additional .env parameters).*/
 async function initToken() {
 	if (!process.env.MOOVI_TOKEN) {
-		console.log("getting token")
 		fs.writeFileSync('.env', `\nMOOVI_TOKEN=${await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD)}`, {
 			'flag': 'a'
 		}, function (err) {
@@ -31,6 +30,7 @@ async function initToken() {
 		require('dotenv').config();
 	}
 	ws_token = process.env.MOOVI_TOKEN
+	user_data = await wsRequest("core_webservice_get_site_info", {})
 	return true;
 
 }
@@ -73,6 +73,48 @@ async function wsRequest(ws_function, req_params) {
 		}
 	})).data;
 }
+
+async function fileRequest(fileUrl, outputLocationPath) {
+	if (typeof ws_token === 'undefined') {
+		await initToken();
+	}
+	outputLocationPath = `./downloads/${outputLocationPath}`
+	fileUrl = fileUrl.replace('webservice/pluginfile.php', `tokenpluginfile.php/${user_data.userprivateaccesskey}`)
+	if (!fs.existsSync(outputLocationPath)) {
+		fs.outputFileSync(outputLocationPath, '')
+		const writer = fs.createWriteStream(outputLocationPath);
+		return (axios.get(fileUrl, {
+			params: {
+				wstoken: ws_token,
+			},
+			responseType: 'stream'
+		})).then(response => {
+			//ensure that the user can call `then()` only when the file has
+			//been downloaded entirely.
+			return new Promise((resolve, reject) => {
+				response.data.pipe(writer);
+				let error = null;
+				writer.on('error', err => {
+					error = err;
+					writer.close();
+					reject(err);
+				});
+				writer.on('close', () => {
+					if (!error) {
+						resolve(true);
+					}
+					//no need to call the reject here, as it will have been called in the
+					//'error' stream;
+				});
+			});
+		});
+	} else {
+		console.log('File already exists')
+		return
+	}
+
+}
+
 
 /**Function that requests Moodle's calendar data for the next two months.*/
 async function getCalendarData(c_year = new Date(Date.now()).getFullYear(), c_month = new Date(Date.now()).getMonth() + 1) {
@@ -207,5 +249,6 @@ module.exports = {
 	getWsToken,
 	getCalendarData,
 	eventStringify,
-	dateDifference
+	dateDifference,
+	fileRequest
 }
