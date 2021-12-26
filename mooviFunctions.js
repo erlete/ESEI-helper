@@ -238,5 +238,3 @@ module.exports = {
 	envAdd,
 	envUpdate
 }
-
-// This is a test.
