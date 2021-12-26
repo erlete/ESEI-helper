@@ -31,7 +31,7 @@ async function initDB() {
 			})
 			// create a database object
 			ESEI_DB = DBClient.db("ESEI_DB")
-
+			
 			// create a collection object for each of the collections
 			eventsColl = ESEI_DB.collection("events")
 			adminsColl = ESEI_DB.collection("admins")
@@ -56,7 +56,7 @@ async function initDB() {
 function logMsgFormat(label = '', log_data = '') {
 	return {
 		title: label == '' ? "Unknown" : label,
-		data: log_data == '' ? null : log_data,
+		data: log_data == '' ? undefined : log_data,
 	}
 }
 
@@ -126,7 +126,6 @@ async function init() {
 					msg_arguments.map(function (argument, index) {
 						switch (argument) {
 							case 'getid':
-
 								logger.admin.log('info', {
 									message: logMsgFormat('ID requested.', message)
 								});
@@ -207,15 +206,17 @@ async function init() {
 			logger.user.log('info', {
 				message: logMsgFormat('User msg', message)
 			});
-			//esto peta la consola permanentemente con cada mensaje
 		}
 	});
+
+
 	try {
 		client.initialize();
 	} catch (error) {
 		logger.client.log('error', {
 			message: logMsgFormat('Error on client initialization', error.toString())
 		});
+		init()
 	}
 }
 

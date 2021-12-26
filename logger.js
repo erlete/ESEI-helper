@@ -41,7 +41,6 @@ loggers.add('admin', {
         myFormat,
     ),
     transports: [
-
         new transports.Console({}),
         new transports.File({
             level: 'info',
@@ -70,7 +69,9 @@ loggers.add('user', {
         myFormat
     ),
     transports: [
-        new transports.Console({}),
+        new transports.Console({
+            level: 'error',
+        }),
 
         new transports.File({
             level: 'info',

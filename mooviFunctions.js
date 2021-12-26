@@ -28,7 +28,7 @@ async function initToken() {
 	}
 	ws_token = process.env.MOOVI_TOKEN
 	user_data = await wsRequest("core_webservice_get_site_info", {})
-	return true;
+	return;
 
 }
 
