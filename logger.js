@@ -69,9 +69,8 @@ loggers.add('user', {
         myFormat
     ),
     transports: [
-        new transports.Console({
-            level: 'error',
-        }),
+        new transports.Console({}),
+
 
         new transports.File({
             level: 'info',

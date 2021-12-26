@@ -67,7 +67,6 @@ async function init() {
 	await initDB()
 
 	super_users = await adminsColl.find({}).toArray()
-	console.log(process.env)
 	// Session authentication:
 	if (process.env.WS_SESSION) {
 		sessionData = JSON.parse(process.env.WS_SESSION);
