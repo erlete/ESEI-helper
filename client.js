@@ -1,4 +1,4 @@
-// Dependencies:
+// Dependencies and declarations:
 const {
 	MongoClient
 } = require("mongodb")
@@ -11,13 +11,16 @@ const {
 	Buttons
 } = require('whatsapp-web.js');
 const logger = require('./logger.js')
-require('dotenv').config();
 
+require('dotenv').config();
 
 const SESSION_FILE_PATH = './session.json';
 let client, sessionData, ESEI_DB, eventsColl, adminsColl, tokensColl, super_users;
 
-//DB functions
+
+// Database methods:
+
+/**Missing documentation.*/
 async function initDB() {
 	return new Promise(async function (resolve, reject) {
 		try {
@@ -26,7 +29,7 @@ async function initDB() {
 				retryWrites: true,
 				useNewUrlParser: true,
 			})
-			// create a database object 
+			// create a database object
 			ESEI_DB = DBClient.db("ESEI_DB")
 
 			// create a collection object for each of the collections
@@ -47,7 +50,6 @@ async function initDB() {
 }
 
 
-
 // Helper functions:
 
 /**Function that formats data for logging purposes.*/
@@ -57,6 +59,7 @@ function logMsgFormat(label = '', log_data = '') {
 		data: log_data == '' ? null : log_data,
 	}
 }
+
 
 // Bot's functions:
 
@@ -102,7 +105,6 @@ async function init() {
 			updateEvents()
 		}, 600000);
 	})
-
 
 	// Bot commands:
 
@@ -210,10 +212,9 @@ async function init() {
 	});
 	try {
 		client.initialize();
-
-	} catch (e) {
+	} catch (error) {
 		logger.client.log('error', {
-			message: logMsgFormat('Error on client initialization', e.toString())
+			message: logMsgFormat('Error on client initialization', error.toString())
 		});
 	}
 }
@@ -240,7 +241,6 @@ async function sendEventList(message) {
 					description: event.description != '' ? event.description.length <= 39 ? event.description : event.description.slice(0, 39) + '...' : 'No existe descripción para este evento.'
 				});
 			});
-			// client.sendMessage(message.from, '```Actualmente no hay eventos :D```');
 			client.sendMessage(message.from, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*'));
 
 
@@ -290,8 +290,10 @@ async function buttonReplyHandler(message) {
 	}
 }
 
+
 // Initialization:
 
+/**Missing documentation.*/
 async function updateEvents() {
 	try {
 		let event_data = await moovi.getEvents(await moovi.getCalendarData());
@@ -347,6 +349,5 @@ async function updateEvents() {
 		});
 	}
 }
-
 
 init()

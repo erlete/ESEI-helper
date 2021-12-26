@@ -1,3 +1,5 @@
+// Dependencies and declarations:
+
 const {
     format,
     transports,
@@ -27,6 +29,9 @@ const myFormat = printf(({
 })
 
 
+// Logger configurations:
+
+// Logger configuration for admins.
 loggers.add('admin', {
     format: combine(
         label({
@@ -54,9 +59,7 @@ loggers.add('admin', {
     ]
 });
 
-//
-// Configure the logger for users
-//
+// Logger configuration for users.
 loggers.add('user', {
     format: combine(
         label({
@@ -79,6 +82,8 @@ loggers.add('user', {
         })
     ]
 });
+
+// Logger configuration for clients.
 loggers.add('client', {
     format: combine(
         label({
@@ -100,6 +105,8 @@ loggers.add('client', {
         })
     ]
 });
+
+// Logger configuration for new events.
 loggers.add('events', {
     format: combine(
         label({
@@ -121,10 +128,14 @@ loggers.add('events', {
         })
     ]
 });
+
 const admin = loggers.get('admin');
 const user = loggers.get('user');
 const client = loggers.get('client');
 const events = loggers.get('events');
+
+
+// Module exports:
 
 module.exports = {
     admin,

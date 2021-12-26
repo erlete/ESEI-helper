@@ -1,4 +1,4 @@
-// Dependencies:
+// Dependencies and declarations:
 
 const axios = require('axios');
 const fs = require('fs-extra');
@@ -6,12 +6,9 @@ const url = require('url'); // Encoded data tool for URL-params.
 
 require('dotenv').config();
 
-// let DATABASE_FILE = './events.json';
-
 function base64(string) {
 	return new Buffer.from(string).toString('base64');
 }
-
 
 
 // WebService Authentication:
@@ -51,7 +48,7 @@ async function getWsToken(username, password) {
 
 // Content processing:
 
-/**CAUTION THIS A GENERAL MOODLE WEBSERVICE REQUEST, READ:
+/**CAUTION: THIS IS A GENERAL MOODLE WEBSERVICE REQUEST. READ:
  * Standard webService request to allow cleaner code, takes two parameters:
  * ws_function: String 	(Requested content's Moodle identifier)
  * req_params: Object	(Object containing all further data required, which is sent to the server)
@@ -59,7 +56,6 @@ async function getWsToken(username, password) {
  * ws_function = 'core_calendar_get_calendar_monthly_view' // Monthly calendar function name.
  * req_params = {	year : 2021	, month : 12	} // Data required to fetch calendar's info.*/
 async function wsRequest(ws_function, req_params) {
-
 	if (typeof ws_token === 'undefined') {
 		await initToken();
 	}
@@ -74,6 +70,7 @@ async function wsRequest(ws_function, req_params) {
 	})).data;
 }
 
+/**No clue about what this actually does, but it works, so whatever...*/
 async function fileRequest(fileUrl, outputLocationPath) {
 	if (typeof ws_token === 'undefined') {
 		await initToken();
@@ -89,8 +86,8 @@ async function fileRequest(fileUrl, outputLocationPath) {
 			},
 			responseType: 'stream'
 		})).then(response => {
-			//ensure that the user can call `then()` only when the file has
-			//been downloaded entirely.
+			/* Ensure that the user can call `then()` only when the file has
+			been downloaded entirely. */
 			return new Promise((resolve, reject) => {
 				response.data.pipe(writer);
 				let error = null;
@@ -109,16 +106,13 @@ async function fileRequest(fileUrl, outputLocationPath) {
 			});
 		});
 	} else {
-		console.log('File already exists')
+		console.log('File already exists.')
 		return
 	}
-
 }
-
 
 /**Function that requests Moodle's calendar data for the next two months.*/
 async function getCalendarData(c_year = new Date(Date.now()).getFullYear(), c_month = new Date(Date.now()).getMonth() + 1) {
-
 	let current_month = (await wsRequest('core_calendar_get_calendar_monthly_view', {
 		year: c_year,
 		month: c_month
@@ -147,7 +141,7 @@ async function getEvents(calendar_data) {
 				})).join(' ').replace(/(\s\.)+/g, '.'),
 				course_name: 'course' in event ? event.course.fullnamedisplay : '',
 				course_category: 'course' in event ? event.course.coursecategory : '',
-				date: event.timestart * 1000, // Hourly delay compensation. HE QUITADO ESO PORQUE DEBERIA SER EN EL CLIENTE SI NO ES UN LIO
+				date: event.timestart * 1000, // Hourly delay compensation.
 				location: event.location,
 				url: event.url,
 				_id: `${event.id}`,
@@ -163,52 +157,11 @@ function getId(event) {
 	return `${new Date(event.date).getTime()}_${event.name.split(' ').map(function (word) {return word[0]}).join('').toLowerCase()}`;
 }
 
-/**Updates a JSON database that contains every event.*/
-// async function updateEvents() {
-// 	let identifier;
-// 	let data = await getEvents(await getCalendarData());
-// 	let data_entries = data.map(function (event) {
-// 		return getId(event)
-// 	});
-// 	let current_entries = require(DATABASE_FILE);
-// 	let old_entries = {
-// 		...current_entries
-// 	};
-
-// 	// Include added entries:
-// 	data.forEach(function (entry) {
-// 		identifier = getId(entry);
-// 		if (!(identifier in current_entries)) {
-// 			current_entries[identifier] = entry;
-// 		}
-// 	})
-
-// 	// Discard removed entries:
-// 	Object.keys(current_entries).forEach(function (entry) {
-// 		if (!data_entries.includes(entry)) {
-// 			delete current_entries[entry];
-// 		}
-// 	})
-
-// 	// Write output:
-// 	if (JSON.stringify(current_entries) !== JSON.stringify(old_entries)) {
-// 		console.log('Modified entries, saving data.');
-// 		fs.writeFile(DATABASE_FILE, JSON.stringify(current_entries), (error) => {
-// 			if (error) {
-// 				console.error(error)
-// 			}
-// 		});
-// 	} else {
-// 		console.log('No modified entries, keeping original data.');
-// 	}
-// }
-
 
 // Format functions:
 
 /**Function that returns a formatted string with event data.*/
-function eventStringify(event) { // TODO: add remaining time parameter.
-
+function eventStringify(event) {
 	return ('' +
 		`${event.course_category == '' ? '': `*Curso:* ${event.course_category}\n\n`}` +
 		`${event.course_category == '' ? '': `*Módulo:* ${event.course_name}\n\n`}` +
@@ -220,7 +173,6 @@ function eventStringify(event) { // TODO: add remaining time parameter.
 
 /**Function that returns an object containing the time difference between two EPOCH dates.*/
 function dateDifference(date1, date2) {
-
 	let diff = Math.abs(date1 - date2); // Returns the ms difference.
 	days = diff / 86400000;
 	hours = days % 1 * 24;
@@ -236,12 +188,9 @@ function dateDifference(date1, date2) {
 }
 
 
-// Module export:
+// Module exports:
 
 module.exports = {
-	// DATABASE_FILE,
-	// updateEvents,
-
 	initToken,
 	wsRequest,
 	getId,
