@@ -14,7 +14,6 @@ const logger = require('./logger.js')
 
 require('dotenv').config();
 
-const SESSION_FILE_PATH = './session.json';
 let client, sessionData, ESEI_DB, eventsColl, adminsColl, tokensColl, super_users;
 
 // Database methods:
