@@ -78,11 +78,11 @@ async function init() {
 
 	client.on('authenticated', (session) => {
 		sessionData = session;
-		if (typeof ws_token === 'undefined') {
-			moovi.envUpdate('WS_SESSION', session)
-		} else {
-			moovi.envAdd('WS_SESSION', session)
-		}
+		// if (typeof ws_token === 'undefined') {
+		// 	moovi.envUpdate('WS_SESSION', session)
+		// } else {
+		// 	moovi.envAdd('WS_SESSION', session)
+		// }
 
 	});
 
