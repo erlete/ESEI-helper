@@ -71,7 +71,7 @@ async function init() {
 	console.log(process.env)
 	// Session authentication:
 	if (process.env.WS_SESSION) {
-		sessionData = process.env.WS_SESSION;
+		sessionData = JSON.parse(process.env.WS_SESSION);
 	}
 
 	client = new Client({
