@@ -16,4 +16,4 @@ jobs:
           node-version: 16
       - run: npm install
       - name: Run client.js
-          run: node client.js
+        run: node client.js
