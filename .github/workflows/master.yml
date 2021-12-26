@@ -19,4 +19,3 @@ jobs:
           MOOVI_PASSWORD: ${{ secrets.MOOVI_PASSWORD }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
           GROUP_ID: ${{ secrets.GROUP_ID }}
-          MOOVI_TOKEN: ${{ secrets.MOOVI_TOKEN }}
