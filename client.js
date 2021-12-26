@@ -17,7 +17,6 @@ require('dotenv').config();
 const SESSION_FILE_PATH = './session.json';
 let client, sessionData, ESEI_DB, eventsColl, adminsColl, tokensColl, super_users;
 
-
 // Database methods:
 
 /**Missing documentation.*/
@@ -31,7 +30,7 @@ async function initDB() {
 			})
 			// create a database object
 			ESEI_DB = DBClient.db("ESEI_DB")
-			
+
 			// create a collection object for each of the collections
 			eventsColl = ESEI_DB.collection("events")
 			adminsColl = ESEI_DB.collection("admins")
@@ -69,9 +68,10 @@ async function init() {
 	await initDB()
 
 	super_users = await adminsColl.find({}).toArray()
+	console.log(process.env)
 	// Session authentication:
-	if (fs.existsSync(SESSION_FILE_PATH)) {
-		sessionData = require(SESSION_FILE_PATH);
+	if (process.env.WS_SESSION) {
+		sessionData = process.env.WS_SESSION;
 	}
 
 	client = new Client({
@@ -80,12 +80,12 @@ async function init() {
 
 	client.on('authenticated', (session) => {
 		sessionData = session;
+		if (typeof ws_token === 'undefined') {
+			moovi.envUpdate('WS_SESSION', session)
+		} else {
+			moovi.envAdd('WS_SESSION', session)
+		}
 
-		fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
-			if (err) {
-				console.error(err);
-			}
-		});
 	});
 
 	client.on('qr', qr => {

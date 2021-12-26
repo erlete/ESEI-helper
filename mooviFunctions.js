@@ -10,6 +10,48 @@ function base64(string) {
 	return new Buffer.from(string).toString('base64');
 }
 
+function envAdd(env_var, env_value) {
+	if (typeof env_value == 'object') {
+		env_value = JSON.stringify(env_value)
+	} else if (typeof env_value != 'string') {
+		try {
+			env_value = env_value.toString()
+		} catch (e) {
+			return 'error, unvalid type for variable'
+		}
+	}
+	fs.writeFileSync('.env', `\n${env_var}=${env_value}`, {
+		'flag': 'a'
+	}, function (err) {
+		if (err) {
+			return console.error(err);
+		}
+	})
+	require('dotenv').config();
+}
+
+function envUpdate(env_var, env_value) {
+	if (typeof env_value == 'object') {
+		env_value = JSON.stringify(env_value)
+	} else if (typeof env_value != 'string') {
+		try {
+			env_value = env_value.toString()
+		} catch (e) {
+			return 'error, unvalid type for variable'
+		}
+	}
+	fs.readFile('.env', 'utf8', function (err, data) {
+		let regex = new RegExp('^.*' + env_var + '.*$', 'gm');
+		let formatted = data.replace(regex, `${env_var}=${env_value}`);
+		fs.writeFile('.env', formatted, 'utf8', function (err) {
+			if (err) return console.log(err);
+		});
+	})
+	require('dotenv').config();
+
+	return;
+}
+
 
 // WebService Authentication:
 
@@ -17,14 +59,7 @@ function base64(string) {
  * Allows automatic ws_token variable definition (with no additional .env parameters).*/
 async function initToken() {
 	if (!process.env.MOOVI_TOKEN) {
-		fs.writeFileSync('.env', `\nMOOVI_TOKEN=${await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD)}`, {
-			'flag': 'a'
-		}, function (err) {
-			if (err) {
-				return console.error(err);
-			}
-		})
-		require('dotenv').config();
+		envAdd('MOOVI_TOKEN', await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD))
 	}
 	ws_token = process.env.MOOVI_TOKEN
 	user_data = await wsRequest("core_webservice_get_site_info", {})
@@ -199,7 +234,9 @@ module.exports = {
 	getCalendarData,
 	eventStringify,
 	dateDifference,
-	fileRequest
+	fileRequest,
+	envAdd,
+	envUpdate
 }
 
 // This is a test.
