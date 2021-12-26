@@ -16,3 +16,9 @@ jobs:
       - run: npm install
       - name: Run client.js
         run: node client.js
+        env:
+          MOOVI_USERNAME: ${{ secrets.MOOVI_USERNAME }}
+          MOOVI_PASSWORD: ${{ secrets.MOOVI_PASSWORD }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          GROUP_ID: ${{ secrets.GROUP_ID }}
+          MOOVI_TOKEN: ${{ secrets.MOOVI_TOKEN }}
