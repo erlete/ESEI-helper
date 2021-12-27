@@ -16,7 +16,7 @@ jobs:
       - run: npm install
       - name: Run client.js
         run: node client.js
-        timeout-minutes: 29
+        timeout-minutes: 32
         env:
           MOOVI_USERNAME: ${{ secrets.MOOVI_USERNAME }}
           MOOVI_PASSWORD: ${{ secrets.MOOVI_PASSWORD }}
