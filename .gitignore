@@ -4,7 +4,6 @@
 session.json
 events.json
 .tests*
-/tests
 
 ### jspm ###
 jspm_packages
