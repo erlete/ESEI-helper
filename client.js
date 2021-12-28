@@ -1,6 +1,7 @@
 // Dependencies:
 
-const moovi = require('./mooviFunctions');
+const formatter = require('./formatter');
+const users = require('./users')
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 const { Client, List, Buttons } = require('whatsapp-web.js');
@@ -8,78 +9,92 @@ const { Client, List, Buttons } = require('whatsapp-web.js');
 require('dotenv').config();
 const SUPERUSERS = process.env.SUPERUSERS.split(',');
 
-const SESSION_FILE_PATH = './session.json';
-let client, sessionData;
+const SESSION = './session.json';
+let client, sessionData, chat, content;
 
 // Helper functions:
 
 /**Function that adds a custom timestamp to the logged message (debugging purposes).*/
 function logger(message, content = '') {
-	let now = new Date(Date.now());
-	console.log(`[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}] -> ${content} ${JSON.stringify(message)}\n`);
+	let now = (new Date(Date.now())).toLocaleString('en-GB', { timeZone: 'UTC' });
+	console.log(`[${now}] -> ${content} ${JSON.stringify(message)}\n`);
 }
 
 
 // Bot's functions:
 
 /**Function that contains Whatsapp bot's mainloop.*/
-async function init() {
+async function session_initialize() {
 
 	// Session authentication:
 
-	if (fs.existsSync(SESSION_FILE_PATH)) {
-		sessionData = require(SESSION_FILE_PATH);
-	}
+	fs.existsSync(SESSION) ? sessionData = require(SESSION) : null
+	client = new Client({ session: sessionData })
 
-	client = new Client({
-		session: sessionData
-	});
-
-	client.on('authenticated', (session) => {
-		sessionData = session;
-		fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
-			if (err) {
-				console.error(err);
-			}
-		});
-	});
-
-	client.on('qr', qr => {
-		qrcode.generate(qr, {
-			small: true
-		});
-	});
-
-	client.on('ready', () => {
-		logger('Client is ready');
+	client.on('authenticated', session => {
+		sessionData = session
+		fs.writeFile(SESSION, JSON.stringify(session),
+			err => err ? console.error(err) : null
+		)
 	})
+
+	client.on('qr', qr => qrcode.generate(qr, { small: true }))
+	client.on('ready', () => logger('Client is ready'))
 
 
 	// Bot commands:
 
-	client.on('message_create', message => {
+	client.on('message_create', async message => {
+		chat = await message.getChat()
+
 		if (message.type == 'list_response') {
-			logger(message, 'List response detected.');
-			listReplyHandler(message);
+			logger(message, 'List response detected.')
+			listReplyHandler(message)
+
 		} else if (message.type == 'buttons_response') {
-			logger(message, 'Button response detected.');
-			buttonReplyHandler(message);
+			logger(message, 'Button response detected.')
+			buttonReplyHandler(message)
+
 		} else if (SUPERUSERS.includes(message.from)) {
-			switch (message.body) {
+			content = message.body.split(' ')
+			switch (content[0]) {
 				case 'getid':
-					logger(message, 'ID requested.');
-					message.reply(message.to);
-					break;
+					chat.sendStateTyping()
+					logger(message, 'ID requested.')
+					client.sendMessage(message.from, `El ID del chat solicitado es: ${message.to}`)
+					chat.clearState()
+					break
+
 				case 'geteventlist':
-					logger(message, 'Event list requested.');
-					sendEventList(message);
-					break;
+					chat.sendStateTyping()
+					logger(message, 'Event list requested.')
+					sendEventList(message)
+					chat.clearState()
+					break
+
+				case 'getsession':
+					chat.sendStateTyping()
+					logger(message, 'Session JSON requested.')
+					client.sendMessage(message.from, 'Con el fin de evitar problemas de seguridad, copie el código de sesión del mensaje siguiente y proceda a eliminarlo.')
+					client.sendMessage(message.from, `${JSON.stringify(require(SESSION))}`)
+					chat.clearState()
+					break
+
+				case 'addme':
+					chat.sendStateTyping()
+					users.addUser(message.from, content[1], content[2])
+					chat.clearState()
+					break
+
+				case 'removeme':
+					chat.sendStateTyping()
+					users.removeUser(message.from)
+					chat.clearState()
+					break
+
 				default:
-					logger(message, 'No matches for the requested message.');
-					break;
+					break
 			}
-		} else {
-			logger(message, 'Non-commanded message.');
 		}
 	});
 
@@ -88,7 +103,7 @@ async function init() {
 
 /**Function that sends a formatted event list to the message sender's chat.*/
 async function sendEventList(message) {
-	let events = require(moovi.DATABASE_FILE);
+	let events = require(formatter.DATABASE);
 	let identifiers = Object.keys(events);
 
 	let rows = [];
@@ -107,9 +122,9 @@ async function sendEventList(message) {
 
 /**Function that serves as handler for list-specific replies.*/
 async function listReplyHandler(message) {
-	let event = require(moovi.DATABASE_FILE)[message.selectedRowId];
+	let event = require(formatter.DATABASE)[message.selectedRowId];
 	let button = new Buttons(
-		`\n${moovi.eventStringify(event)}`,
+		`\n${formatter.eventStringify(event)}`,
 		[{id: `${event.date}`, body: 'Ver tiempo restante'}],
 		`Evento: ${event.name.toUpperCase()}`,
 		`\nVisita ${event.url} para más información acerca del evento.`
@@ -119,11 +134,11 @@ async function listReplyHandler(message) {
 
 /**Function that serves as handler for button-specific replies.*/
 async function buttonReplyHandler(message) {
-	let difference = moovi.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)));
+	let difference = formatter.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)));
 	client.sendMessage(message.to, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
 }
 
 
 // Initialization:
 
-init();
+session_initialize();
