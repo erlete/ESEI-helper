@@ -1,9 +1,8 @@
-// Dependencies:
-
 const fs = require('fs');
 const auth = require('./auth');
 
 let DATABASE = './events.json';
+
 
 /**Requests Moodle's calendar data for the next two months.*/
 async function getCalendarData(c_year = new Date(Date.now()).getFullYear(),
@@ -22,6 +21,7 @@ async function getCalendarData(c_year = new Date(Date.now()).getFullYear(),
 	return current_month.concat(next_month);
 }
 
+
 /**Processes fetched calendar data for upcoming events.*/
 async function getEvents(weeks) {
 	return weeks.map(week => week.days).flat().map(day => day.events).flat().map(event => ({
@@ -37,6 +37,7 @@ async function getEvents(weeks) {
 	})).filter(event => event.date >= new Date(Date.now()) ? event : event); // FIXME: falsy branch set to 'event' for debugging purposes only.
 }
 
+
 /**Formats an event's description.*/
 function formatDescription(event) {
 	let match = event.description.match(/(?<=[>])[\s\S]*?(?=[<])/g)
@@ -49,6 +50,7 @@ function formatDescription(event) {
 
 	return ''
 }
+
 
 /**Updates a JSON database that contains every event.*/
 async function updateEvents() {
@@ -72,10 +74,6 @@ async function updateEvents() {
 	}
 }
 
-updateEvents()
-
-
-// Format functions:
 
 /**Returns a formatted string with event data.*/
 function eventStringify(event) { // TODO: add remaining time parameter.
@@ -87,6 +85,7 @@ function eventStringify(event) { // TODO: add remaining time parameter.
 		`${event.description == '' ? '' : `*Descripción:* _${event.description}_`}`
 	);
 }
+
 
 /**Returns an object containing the time difference between two EPOCH dates.*/
 function dateDifference(date1, date2) {
@@ -105,8 +104,6 @@ function dateDifference(date1, date2) {
 	};
 }
 
-
-// Module export:
 
 module.exports = {
 	DATABASE,
