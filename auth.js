@@ -7,7 +7,7 @@ const CAREER = process.env.DEGREE
 const LEVEL = process.env.LEVEL
 
 
-/**Function that gets a Moodle webService token from an username and password.*/
+/**Retrieves a Moodle webService token from an username and password.*/
 async function getWsToken(username, password) {
 	return (await axios.post('https://moovi.uvigo.gal/login/token.php', {}, {
 		params: {
@@ -19,7 +19,7 @@ async function getWsToken(username, password) {
 }
 
 
-/**Initializes the token with default dotenv/GH-secrets credentials.
+/**Initializes a token with default dotenv/GH-secrets credentials.
  * Provides with automatic ws_token variable definition with no additional
 	dotenv parameters.*/
 async function initToken() {
