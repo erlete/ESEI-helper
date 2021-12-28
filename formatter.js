@@ -77,7 +77,7 @@ updateEvents()
 
 // Format functions:
 
-/**Function that returns a formatted string with event data.*/
+/**Returns a formatted string with event data.*/
 function eventStringify(event) { // TODO: add remaining time parameter.
 	return ('' +
 		`${event.course_category == '' ? '': `*Curso:* ${event.course_category}\n\n`}` +
@@ -88,7 +88,7 @@ function eventStringify(event) { // TODO: add remaining time parameter.
 	);
 }
 
-/**Function that returns an object containing the time difference between two EPOCH dates.*/
+/**Returns an object containing the time difference between two EPOCH dates.*/
 function dateDifference(date1, date2) {
 
 	let diff = Math.abs(date1 - date2); // Returns the ms difference.
@@ -113,7 +113,6 @@ module.exports = {
 
 	getEvents,
 	getCalendarData,
-
 	updateEvents,
 
 	eventStringify,
