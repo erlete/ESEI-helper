@@ -1,0 +1,62 @@
+{
+    "6793755":
+    {
+        "id": 6793755,
+        "name": "Trabajo pendente de entrega",
+        "description": "Trabajo para entregar y presentar en los grupos reducidos de la semana del 13 al 17 de diciembre. Las instrucciones detalladas y el fichero Python necesario se encuentran en los ficheros adjuntos a los que se accede pinchando en la actividad. El programa del fichero \"Newton.py\" está escrito en Python y para ejecutarlo se recomieda la distribución de código libre Anaconda: https://www.anaconda.com/distribution/",
+        "location": "",
+        "course_id": 5666,
+        "course_name": "2122-O06G151V01102 Matemáticas: Análise matemático",
+        "course_category": "Grao en Enxeñaría Informática",
+        "date": 1639774800000,
+        "url": "https://moovi.uvigo.gal/mod/assign/view.php?id=259841"
+    },
+    "7324333":
+    {
+        "id": 7324333,
+        "name": "Final AM",
+        "description": "Examen final de AM, grupo de tarde.",
+        "location": "SO1",
+        "course_id": "",
+        "course_name": "",
+        "course_category": "",
+        "date": 1642073400000,
+        "url": "https://moovi.uvigo.gal/?redirect=0"
+    },
+    "7324335":
+    {
+        "id": 7324335,
+        "name": "Final SD",
+        "description": "Examen final de SD, grupo de tarde.",
+        "location": "Magna 2.2",
+        "course_id": "",
+        "course_name": "",
+        "course_category": "",
+        "date": 1642413600000,
+        "url": "https://moovi.uvigo.gal/?redirect=0"
+    },
+    "7324336":
+    {
+        "id": 7324336,
+        "name": "Final FMI",
+        "description": "Examen final de FMI, grupo de tarde.",
+        "location": "2.1",
+        "course_id": "",
+        "course_name": "",
+        "course_category": "",
+        "date": 1642770000000,
+        "url": "https://moovi.uvigo.gal/?redirect=0"
+    },
+    "7325058":
+    {
+        "id": 7325058,
+        "name": "Final PROI",
+        "description": "Examen final de PROI, grupo de tarde.",
+        "location": "Magna",
+        "course_id": "",
+        "course_name": "",
+        "course_category": "",
+        "date": 1643212800000,
+        "url": "https://moovi.uvigo.gal/?redirect=0"
+    }
+}
