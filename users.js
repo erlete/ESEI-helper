@@ -1,4 +1,5 @@
 const fs = require('fs')
+
 const DATABASE = './users.json'
 
 function addUser(phone, degree, level) {

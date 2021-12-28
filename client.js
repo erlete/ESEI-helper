@@ -1,32 +1,27 @@
-// Dependencies:
-
-const formatter = require('./formatter');
+const fs = require('fs')
+const qrcode = require('qrcode-terminal')
+const { Client, List, Buttons } = require('whatsapp-web.js')
+const formatter = require('./formatter')
 const users = require('./users')
-const fs = require('fs');
-const qrcode = require('qrcode-terminal');
-const { Client, List, Buttons } = require('whatsapp-web.js');
 
-require('dotenv').config();
-const SUPERUSERS = process.env.SUPERUSERS.split(',');
+require('dotenv').config()
+const SUPERUSERS = process.env.SUPERUSERS.split(',')
 
-const SESSION = './session.json';
-let client, sessionData, chat, content;
+const SESSION = './session.json'
+let client, sessionData, chat, content
 
-// Helper functions:
 
 /**Function that adds a custom timestamp to the logged message (debugging purposes).*/
 function logger(message, content = '') {
-	let now = (new Date(Date.now())).toLocaleString('en-GB', { timeZone: 'UTC' });
-	console.log(`[${now}] -> ${content} ${JSON.stringify(message)}\n`);
+	let now = (new Date(Date.now())).toLocaleString('en-GB', { timeZone: 'UTC' })
+	console.log(`[${now}] -> ${content} ${JSON.stringify(message)}\n`)
 }
 
-
-// Bot's functions:
 
 /**Function that contains Whatsapp bot's mainloop.*/
 async function session_initialize() {
 
-	// Session authentication:
+	// Session:
 
 	fs.existsSync(SESSION) ? sessionData = require(SESSION) : null
 	client = new Client({ session: sessionData })
@@ -41,8 +36,7 @@ async function session_initialize() {
 	client.on('qr', qr => qrcode.generate(qr, { small: true }))
 	client.on('ready', () => logger('Client is ready'))
 
-
-	// Bot commands:
+	// Commands:
 
 	client.on('message_create', async message => {
 		chat = await message.getChat()
@@ -96,49 +90,52 @@ async function session_initialize() {
 					break
 			}
 		}
-	});
+	})
 
-	client.initialize();
+	client.initialize()
 }
+
 
 /**Function that sends a formatted event list to the message sender's chat.*/
 async function sendEventList(message) {
-	let events = require(formatter.DATABASE);
-	let identifiers = Object.keys(events);
+	let events = require(formatter.DATABASE)
+	let identifiers = Object.keys(events)
 
-	let rows = [];
-	let sections = [{title: 'Eventos:', rows: rows}];
+	let rows = []
+	let sections = [{title: 'Eventos:', rows: rows}]
 
 	identifiers.forEach(function (identifier) {
 		sections[0].rows.push({
 			id: identifier,
 			title: events[identifier].name,
 			description: events[identifier].description != '' ? events[identifier].description.length <= 39 ? events[identifier].description : events[identifier].description.slice(0, 39) + '...' : 'No existe descripción para este evento.'
-		});
-	});
+		})
+	})
 
-	client.sendMessage(message.to, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', ''));
+	client.sendMessage(message.to, new List('_Pulsa el botón de la parte inferior para ver todos los eventos disponibles._', 'Ver eventos', sections, '*Próximos eventos:*', ''))
 }
+
 
 /**Function that serves as handler for list-specific replies.*/
 async function listReplyHandler(message) {
-	let event = require(formatter.DATABASE)[message.selectedRowId];
+	let event = require(formatter.DATABASE)[message.selectedRowId]
 	let button = new Buttons(
 		`\n${formatter.eventStringify(event)}`,
 		[{id: `${event.date}`, body: 'Ver tiempo restante'}],
 		`Evento: ${event.name.toUpperCase()}`,
 		`\nVisita ${event.url} para más información acerca del evento.`
-	);
-	client.sendMessage(message.to, button);
+	)
+
+	client.sendMessage(message.to, button)
 }
+
 
 /**Function that serves as handler for button-specific replies.*/
 async function buttonReplyHandler(message) {
-	let difference = formatter.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)));
-	client.sendMessage(message.to, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`);
+	let difference = formatter.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)))
+	client.sendMessage(message.to, `Tiempo restante: ${difference.days} día(s), ${difference.hours} hora(s), ${difference.minutes} minuto(s), ${difference.seconds} segundo(s).`)
 }
 
 
-// Initialization:
-
+// Bot initialization:
 session_initialize();
