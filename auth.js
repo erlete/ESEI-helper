@@ -1,21 +1,11 @@
-// Dependencies and constants:
+const axios = require('axios')
+const url = require('url')
 
-const axios = require('axios');
-const url = require('url'); // Encoded data tool for URL-params.
-require('dotenv').config();
+require('dotenv').config()
 
 const CAREER = process.env.DEGREE
 const LEVEL = process.env.LEVEL
 
-
-// WebService Authentication:
-
-/**Function that initializes the token with default .env credentials.
- * Allows automatic ws_token variable definition (with no additional .env parameters).*/
-async function initToken() {
-	ws_token = await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD);
-	return true;
-}
 
 /**Function that gets a Moodle webService token from an username and password.*/
 async function getWsToken(username, password) {
@@ -25,11 +15,21 @@ async function getWsToken(username, password) {
 			password: password,
 			service: 'moodle_mobile_app'
 		}
-	})).data.token;
+	})).data.token
 }
 
+
+/**Initializes the token with default dotenv/GH-secrets credentials.
+ * Provides with automatic ws_token variable definition with no additional
+	dotenv parameters.*/
+async function initToken() {
+	ws_token = await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD)
+	return true
+}
+
+
 /**CAUTION: THIS IS A GENERAL MOODLE WEBSERVICE REQUEST. READ:
- * Standard webService request to allow cleaner code, takes two parameters:
+ * Standard webService request to allow cleaner code. Takes two parameters:
  * ws_function: String (Requested content's Moodle identifier)
  * req_params: Object (Object containing all further data required, which is
  	sent to the server)
@@ -52,11 +52,9 @@ async function wsRequest(ws_function, req_params) {
 				moodlewsrestformat: 'json'
 			}
 		})
-	).data;
+	).data
 }
 
-
-// Module exports:
 
 module.exports = {
 	initToken,
