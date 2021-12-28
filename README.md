@@ -22,7 +22,7 @@ MOOVI_PASSWORD=<your Moovi passowrd>
 GROUP_ID=<the id of the main communications' group>
 ```
 
-_Note that this `.env` file is ignored by the repository, completely local and safe to use. Your data is not used remotely for a purpose other than logging into Moovi and retrieving your personal calendar's data. Feel free to inspect the `mooviFunctions.js` file if you feel insecure about this._
+_Note that this `.env` file is ignored by the repository, completely local and safe to use. Your data is not used remotely for a purpose other than logging into Moovi and retrieving your personal calendar's data. Feel free to inspect the `auth.js` file if you feel insecure about this._
 
 Both `MOOVI_USERNAME` and `MOOVI_PASSWORD` parameters must not contain spaces (not even next to the equal signs) and/or quotes. If, somehow, your password contains quotes... well... we just don't know what to do about that, sorry for the inconvenience.
 
