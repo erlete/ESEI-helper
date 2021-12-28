@@ -1,7 +1,7 @@
-const fs = require('fs');
-const auth = require('./auth');
+const fs = require('fs')
+const auth = require('./auth')
 
-let DATABASE = './events.json';
+let DATABASE = './events.json'
 
 
 /**Requests Moodle's calendar data for the next two months.*/
@@ -18,7 +18,7 @@ async function getCalendarData(c_year = new Date(Date.now()).getFullYear(),
 		month: c_month == 12 ? 1 : c_month + 1
 	})).weeks;
 
-	return current_month.concat(next_month);
+	return current_month.concat(next_month)
 }
 
 
@@ -34,7 +34,7 @@ async function getEvents(weeks) {
 		course_category: event.normalisedeventtype == "course" ? event.course.coursecategory : '',
 		date: (event.timestart + 3600) * 1000, // Hourly delay compensation.
 		url: event.url
-	})).filter(event => event.date >= new Date(Date.now()) ? event : event); // FIXME: falsy branch set to 'event' for debugging purposes only.
+	})).filter(event => event.date >= new Date(Date.now()) ? event : event) // FIXME: falsy branch set to 'event' for debugging purposes only.
 }
 
 
@@ -67,10 +67,10 @@ async function updateEvents() {
 
 	// Write output:
 	if (JSON.stringify(new_events) != JSON.stringify(old_events)) {
-		console.log('Modified entries, saving data.');
-		fs.writeFile(DATABASE, JSON.stringify(new_events), error => { if (error) { console.error(error) } });
+		console.log('Modified entries, saving data.')
+		fs.writeFile(DATABASE, JSON.stringify(new_events), error => { if (error) { console.error(error) } })
 	} else {
-		console.log('No modified entries, keeping original data.');
+		console.log('No modified entries, keeping original data.')
 	}
 }
 
@@ -83,25 +83,25 @@ function eventStringify(event) { // TODO: add remaining time parameter.
 		`*Fecha límite:* ${new Date(event.date).toLocaleString('en-GB', { timeZone: 'UTC' })}\n\n` +
 		`${event.location == '' ? '' : `*Localización:* ${event.location}\n\n`}` +
 		`${event.description == '' ? '' : `*Descripción:* _${event.description}_`}`
-	);
+	)
 }
 
 
 /**Returns an object containing the time difference between two EPOCH dates.*/
 function dateDifference(date1, date2) {
 
-	let diff = Math.abs(date1 - date2); // Returns the ms difference.
-	days = diff / 86400000;
-	hours = days % 1 * 24;
-	minutes = hours % 1 * 60;
-	seconds = minutes % 1 * 60;
+	let diff = Math.abs(date1 - date2) // Returns the ms difference.
+	days = diff / 86400000
+	hours = days % 1 * 24
+	minutes = hours % 1 * 60
+	seconds = minutes % 1 * 60
 
 	return {
 		days: Math.floor(days),
 		hours: Math.floor(hours),
 		minutes: Math.floor(minutes),
 		seconds: Math.floor(seconds)
-	};
+	}
 }
 
 
