@@ -7,6 +7,7 @@ require('dotenv').config()
 
 // Constants and variables:
 const SUPERUSERS = process.env.SUPERUSERS.split(',')
+const SESSION = JSON.parse(process.env.SESSION)
 const TOKENS = {
 	ESEI: {
 		"1": process.env.ESEI_1,
@@ -49,6 +50,7 @@ async function wsRequest(token, ws_function, req_params) {
 
 module.exports = {
 	SUPERUSERS,
+	SESSION,
 	TOKENS,
 
 	wsRequest

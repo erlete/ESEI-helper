@@ -7,10 +7,10 @@ const { Client, List, Buttons } = require('whatsapp-web.js')
 const users = require('./users')
 const event_fetcher = require('./event_fetcher')
 const { logger } = require('./aux')
-const { SUPERUSERS } = require('./auth')
+const { SUPERUSERS, SESSION } = require('./auth')
 
 // Constants and variables:
-const SESSION = './session.json'
+//const SESSION = './session.json'
 let client, sessionData, chat, content
 
 
@@ -19,18 +19,7 @@ async function session_initialize() {
 
 	// Session:
 
-	fs.existsSync(SESSION) ? sessionData = require(SESSION) : null
-	client = new Client({ session: sessionData })
-
-
-	client.on('authenticated', session => {
-		sessionData = session
-		fs.writeFile(SESSION, JSON.stringify(session),
-			err => err ? console.error(err) : null
-		)
-	})
-
-	client.on('qr', qr => qrcode.generate(qr, { small: true }))
+	client = new Client({ session: SESSION })
 	client.on('ready', () => logger('Client is ready'))
 
 	// Commands:
@@ -62,7 +51,7 @@ async function session_initialize() {
 					logger('Session JSON requested.', message)
 					if (superuser) {
 						client.sendMessage(message.from, 'Con el fin de evitar problemas de seguridad, copie el código de sesión del mensaje siguiente y proceda a eliminarlo.')
-						client.sendMessage(message.from, `${JSON.stringify(require(SESSION))}`)
+						client.sendMessage(message.from, `${JSON.stringify(SESSION)}`)
 					}
 					chat.clearState()
 					break
