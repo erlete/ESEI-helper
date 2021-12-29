@@ -1,8 +1,25 @@
+// Remote modules:
 const axios = require('axios')
 const url = require('url')
 
+// Dotenv settings:
 require('dotenv').config()
 
+// Constants and variables:
+const SUPERUSERS = process.env.SUPERUSERS.split(',')
+const TOKENS = {
+	ESEI: {
+		"1": process.env.ESEI_1,
+		"2": process.env.ESEI_2,
+		"3": process.env.ESEI_3,
+		"4": process.env.ESEI_4
+	},
+	EEAE: {
+		"1": process.env.EEAE_1,
+		"2": process.env.EEAE_2,
+		"3": process.env.EEAE_3,
+		"4": process.env.EEAE_4
+	}
 }
 
 
@@ -14,17 +31,13 @@ require('dotenv').config()
  * Example:
  *   ws_function = 'core_calendar_get_calendar_monthly_view'
  *   req_params = { year : 2021 , month : 12 }*/
-async function wsRequest(ws_function, req_params) {
-	if (typeof ws_token === 'undefined') {
-		await initToken();
-	}
-
+async function wsRequest(token, ws_function, req_params) {
 	return (await axios.post(
 		'https://moovi.uvigo.gal/webservice/rest/server.php',
 		new url.URLSearchParams({
 			...req_params,
 			wsfunction: ws_function,
-			wstoken: ws_token
+			wstoken: token
 		}).toString(), {
 			params: {
 				moodlewsrestformat: 'json'
