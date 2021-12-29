@@ -6,19 +6,12 @@ const users = require('./users')
 
 require('dotenv').config()
 const SUPERUSERS = process.env.SUPERUSERS.split(',')
+const { logger } = require('./aux')
 
 const SESSION = './session.json'
 let client, sessionData, chat, content
 
 
-/**Function that adds a custom timestamp to the logged message (debugging purposes).*/
-function logger(message, content = '') {
-	let now = (new Date(Date.now())).toLocaleString('en-GB', { timeZone: 'UTC' })
-	console.log(`[${now}] -> ${content} ${JSON.stringify(message)}\n`)
-}
-
-
-/**Function that contains Whatsapp bot's mainloop.*/
 async function session_initialize() {
 
 	// Session:
