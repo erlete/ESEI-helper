@@ -1,19 +1,25 @@
+// Remote modules:
 const fs = require('fs')
-const auth = require('./auth')
 
-let DATABASE = './events.json'
+// Local modules:
+const auth = require('./auth')
+const { logger } = require('./aux')
+
+// Constants and variables:
+let EVENTS = './events.json'
 
 
 /**Requests Moodle's calendar data for the next two months.*/
-async function getCalendarData(c_year = new Date(Date.now()).getFullYear(),
-		c_month = new Date(Date.now()).getMonth() + 1) {
+async function getCalendarData(token) {
+	let c_year = new Date(Date.now()).getFullYear()
+	let c_month = new Date(Date.now()).getMonth() + 1
 
-	let current_month = (await auth.wsRequest('core_calendar_get_calendar_monthly_view', {
+	let current_month = (await auth.wsRequest(token, 'core_calendar_get_calendar_monthly_view', {
 		year: c_year,
 		month: c_month
 	})).weeks;
 
-	let next_month = (await auth.wsRequest('core_calendar_get_calendar_monthly_view', {
+	let next_month = (await auth.wsRequest(token, 'core_calendar_get_calendar_monthly_view', {
 		year: c_month == 12 ? c_year + 1 : c_year,
 		month: c_month == 12 ? 1 : c_month + 1
 	})).weeks;
@@ -53,10 +59,20 @@ function formatDescription(event) {
 
 
 /**Updates a JSON database that contains every event.*/
-async function updateEvents() {
-	let data = await getEvents(await getCalendarData())
+async function updateEvents(degree, year) {
+	let data = await getEvents(await getCalendarData(auth.TOKENS[degree][year]))
 	let data_ids = data.map(event => `${event.id}`)
-	let new_events = require(DATABASE)
+	let database = require(EVENTS)
+
+	if (!Object.keys(database).includes(degree)) {
+		database[degree] = {}
+	}
+
+	for (i = 1; i <= 4; i++) {
+		database[degree][i] = database[degree][i] ? database[degree][i] : {}
+	}
+
+	let new_events = require(EVENTS)[degree][year]
 	let old_events = {...new_events}
 
 	// Include added entries:
@@ -65,18 +81,20 @@ async function updateEvents() {
 	// Discard removed entries:
 	Object.keys(old_events).forEach(event_id => data_ids.includes(event_id) ? null : delete new_events[event_id])
 
+	database[degree][year] = new_events
+
 	// Write output:
 	if (JSON.stringify(new_events) != JSON.stringify(old_events)) {
-		console.log('Modified entries, saving data.')
-		fs.writeFile(DATABASE, JSON.stringify(new_events), error => { if (error) { console.error(error) } })
+		logger('Modified entries, saving data.')
+		fs.writeFile(EVENTS, JSON.stringify(database), error => { if (error) { console.error(error) } })
 	} else {
-		console.log('No modified entries, keeping original data.')
+		logger('No modified entries, keeping original data.')
 	}
 }
 
 
 /**Returns a formatted string with event data.*/
-function eventStringify(event) { // TODO: add remaining time parameter.
+function eventStringify(event) {
 	return ('' +
 		`${event.course_category == '' ? '': `*Curso:* ${event.course_category}\n\n`}` +
 		`${event.course_category == '' ? '': `*Módulo:* ${event.course_name}\n\n`}` +
@@ -106,7 +124,7 @@ function dateDifference(date1, date2) {
 
 
 module.exports = {
-	DATABASE,
+	EVENTS,
 
 	getEvents,
 	getCalendarData,
