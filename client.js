@@ -10,8 +10,7 @@ const { logger } = require('./aux')
 const { SUPERUSERS, SESSION } = require('./auth')
 
 // Constants and variables:
-//const SESSION = './session.json'
-let client, sessionData, chat, content
+let client, chat, content
 
 
 /**Bot's authentication and mainloop.*/
