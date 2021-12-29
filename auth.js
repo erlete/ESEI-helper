@@ -3,28 +3,6 @@ const url = require('url')
 
 require('dotenv').config()
 
-const CAREER = process.env.DEGREE
-const LEVEL = process.env.LEVEL
-
-
-/**Retrieves a Moodle webService token from an username and password.*/
-async function getWsToken(username, password) {
-	return (await axios.post('https://moovi.uvigo.gal/login/token.php', {}, {
-		params: {
-			username: username,
-			password: password,
-			service: 'moodle_mobile_app'
-		}
-	})).data.token
-}
-
-
-/**Initializes a token with default dotenv/GH-secrets credentials.
- * Provides with automatic ws_token variable definition with no additional
-	dotenv parameters.*/
-async function initToken() {
-	ws_token = await getWsToken(process.env.MOOVI_USERNAME, process.env.MOOVI_PASSWORD)
-	return true
 }
 
 
@@ -57,7 +35,8 @@ async function wsRequest(ws_function, req_params) {
 
 
 module.exports = {
-	initToken,
-	wsRequest,
-	getWsToken
+	SUPERUSERS,
+	TOKENS,
+
+	wsRequest
 }
