@@ -40,7 +40,7 @@ async function getEvents(weeks) {
 		course_category: event.normalisedeventtype == "course" ? event.course.coursecategory : '',
 		date: (event.timestart + 3600) * 1000, // Hourly delay compensation.
 		url: event.url
-	})).filter(event => event.date >= new Date(Date.now()) ? event : event) // FIXME: falsy branch set to 'event' for debugging purposes only.
+	})).filter(event => event.date >= new Date(Date.now()) ? event : null)
 }
 
 
