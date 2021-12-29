@@ -133,3 +133,9 @@ module.exports = {
 	eventStringify,
 	dateDifference
 }
+
+
+// Quick test:
+
+updateEvents("ESEI", 1)
+updateEvents("EEAE", 2)
