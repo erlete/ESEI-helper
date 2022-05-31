@@ -2,6 +2,8 @@
 
 A Whatsapp bot developed by and for the ESEI's students.
 
+\#TODO: UPDATE THIS
+
 ## Installation
 
 _Note: this package requires Node >= v16.0 and Node Package Manager >= v8.3._

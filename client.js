@@ -40,7 +40,7 @@ async function initDB() {
 			resolve()
 		} catch (e) {
 			logger.client.log('error', {
-				message: logMsgFormat('Error initializing DB', e.toString(), )
+				message: logMsgFormat('Error initializing DB', e.toString(),)
 			});
 			reject()
 		}
@@ -165,7 +165,7 @@ async function init() {
 						}
 					}, {
 						upsert: true
-					}, ).then(function (upsert_result) {
+					}).then(function (upsert_result) {
 						if (upsert_result.upsertedId) {
 							message.reply(`Succesfully added admin, name:'${n_admin.name}' ws_id:'${n_admin.ws_id}'`)
 							logger.admin.log('info', {
@@ -281,7 +281,7 @@ async function listReplyHandler(message) {
 async function buttonReplyHandler(message) {
 	try {
 		let difference = moovi.dateDifference(new Date(Date.now()), new Date(parseInt(message.selectedButtonId)));
-		client.sendMessage(message.from, `Tiempo restante: ${difference.days} día${difference.days==1?'':'s'}, ${difference.hours} hora${difference.hours==1?'':'s'}, ${difference.minutes} minuto${difference.minutes==1?'':'s'}, ${difference.seconds} segundo${difference.seconds==1?'':'s'}.`);
+		client.sendMessage(message.from, `Tiempo restante: ${difference.days} día${difference.days == 1 ? '' : 's'}, ${difference.hours} hora${difference.hours == 1 ? '' : 's'}, ${difference.minutes} minuto${difference.minutes == 1 ? '' : 's'}, ${difference.seconds} segundo${difference.seconds == 1 ? '' : 's'}.`);
 	} catch (e) {
 		logger.client.log('error', {
 			message: logMsgFormat('Error replying to button', e.toString())
@@ -299,10 +299,10 @@ async function updateEvents() {
 		// this is an upsert. We use the update method instead of insert.
 		event_data.forEach(async function (event, index) {
 			let upsertResult = await eventsColl.updateOne({
-					_id: event._id
-				}, {
-					$set: event
-				},
+				_id: event._id
+			}, {
+				$set: event
+			},
 
 				{
 					upsert: true
