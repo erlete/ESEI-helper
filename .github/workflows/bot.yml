@@ -23,7 +23,3 @@ jobs:
           MONGO_URL: ${{ secrets.MONGO_URL }}
           GROUP_ID: ${{ secrets.GROUP_ID }}
           WS_SESSION: ${{ secrets.WS_SESSION }}
-          ESEI_1: ${{ ESEI_1 }}
-          ESEI_2: ${{ ESEI_2 }}
-          ESEI_3: ${{ ESEI_3 }}
-          ESEI_4: ${{ ESEI_4 }}
